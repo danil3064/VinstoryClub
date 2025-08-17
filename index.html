@@ -27,6 +27,9 @@
       -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
     a{color:inherit;text-decoration:none}
 
+    /* Блокировка фона при открытом модале */
+    body.modal-lock{position:fixed;overflow:hidden;width:100%}
+
     header{position:sticky;top:0;z-index:50;background:var(--panel);backdrop-filter:saturate(180%) blur(6px);
             border-bottom:1px solid var(--stroke);padding:12px 16px;display:flex;gap:12px;align-items:center}
     .logo{width:28px;height:28px;border-radius:8px;background:#fff;border:1px solid var(--stroke);
@@ -64,14 +67,18 @@
     .empty{padding:48px 12px;text-align:center;color:var(--muted)}
     @media (min-width:720px){ .toolbar{top:60px} .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} }
 
-    /* Product modal */
+    /* Общие стили модалов */
     .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}
     .modal.open{display:flex}
     .sheet{width:min(620px,96vw);max-height:92vh;background:#fff;border:1px solid var(--stroke);border-radius:18px;overflow:hidden;
             display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,.12)}
     .sheet header{position:relative;top:auto;background:#fff;border-bottom:1px solid var(--stroke);padding:12px 14px;display:flex;gap:8px;align-items:center}
     .close{margin-left:auto;background:#fff;border:1px solid var(--stroke);color:var(--text);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow)}
-    .sheet-scroll{flex:1;overflow:auto;background:#fff}
+
+    /* Прокрутка внутри модалов */
+    .dialog-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff}
+
+    /* Модал товара */
     .gallery{background:#fff;display:flex;align-items:center;justify-content:center}
     .big{max-height:54vh;max-width:100%;width:100%;object-fit:contain;background:#fff;display:block}
     .strip{display:flex;gap:6px;overflow:auto;padding:8px;background:#f7f5f2;border-top:1px solid var(--stroke)}
@@ -83,7 +90,7 @@
     .buy .price{font-weight:700}
     .buy .btn{flex:0 0 auto;min-width:44%}
 
-    /* Filters/Sort modal + brands expander */
+    /* Фильтры/сортировка */
     .sheet.small{width:min(560px,96vw)}
     .form{display:flex;flex-direction:column;gap:12px;padding:12px 14px}
     .row{display:flex;gap:8px;flex-wrap:wrap}
@@ -97,11 +104,15 @@
     .footer{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--stroke);background:#fff}
     .footer .btn{flex:1}
 
+    /* Раскрывающийся блок «Бренды» + стрелка */
     .expander{border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow);background:#fff}
     .expander summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:8px}
     .expander summary::-webkit-details-marker{display:none}
     .expander .title{font-weight:600}
     .expander .count{margin-left:auto;color:var(--muted);font-size:12px}
+    .expander .chev{width:10px;height:10px;border-right:2px solid #9a9a9a;border-bottom:2px solid #9a9a9a;
+                    transform:rotate(-45deg);transition:transform .2s ease;margin-left:8px;opacity:.9}
+    .expander[open] .chev{transform:rotate(45deg)}
     .expander .content{padding:12px 14px;border-top:1px solid var(--stroke);display:flex;flex-direction:column;gap:10px}
     .chipset{display:flex;gap:8px;flex-wrap:wrap}
     .chipset .chk{position:relative}
@@ -139,7 +150,7 @@
         <button class="close" id="d-close">Закрыть</button>
       </header>
 
-      <div class="sheet-scroll">
+      <div class="dialog-scroll">
         <div class="gallery">
           <img id="d-big" class="big" src="" alt="Фото товара">
         </div>
@@ -164,50 +175,54 @@
         <div style="font-weight:700">Фильтры</div>
         <button class="close" id="f-close">Закрыть</button>
       </header>
-      <div class="form">
-        <div class="row">
-          <div class="select">
-            <label for="f-gender">Пол</label>
-            <select id="f-gender">
-              <option value="">Все</option>
-              <option value="m">Мужские</option>
-              <option value="w">Женские</option>
-            </select>
-          </div>
-          <div class="select">
-            <label for="f-size">Размер EU</label>
-            <select id="f-size">
-              <option value="">Любой</option>
-              <option>36</option><option>37</option><option>38</option><option>39</option>
-              <option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option>
-            </select>
-          </div>
-          <div class="input">
-            <label for="f-minp">Цена от</label>
-            <input id="f-minp" type="number" inputmode="numeric" />
-          </div>
-          <div class="input">
-            <label for="f-maxp">до</label>
-            <input id="f-maxp" type="number" inputmode="numeric" />
-          </div>
-        </div>
 
-        <!-- Раздел «Бренды» внутри фильтров -->
-        <details id="brandsExpander" class="expander">
-          <summary>
-            <span class="title">Бренды</span>
-            <span id="brandsCount" class="count"></span>
-          </summary>
-          <div class="content">
-            <div class="brand-search">
-              <input id="brandSearch" type="search" placeholder="Поиск бренда" />
+      <div class="dialog-scroll">
+        <div class="form">
+          <div class="row">
+            <div class="select">
+              <label for="f-gender">Пол</label>
+              <select id="f-gender">
+                <option value="">Все</option>
+                <option value="m">Мужские</option>
+                <option value="w">Женские</option>
+              </select>
             </div>
-            <div class="chipset" id="brandsBox"><!-- chips via JS --></div>
-            <button id="brandsClear" class="pill" style="align-self:flex-start">Очистить бренды</button>
+            <div class="select">
+              <label for="f-size">Размер EU</label>
+              <select id="f-size">
+                <option value="">Любой</option>
+                <option>36</option><option>37</option><option>38</option><option>39</option>
+                <option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option>
+              </select>
+            </div>
+            <div class="input">
+              <label for="f-minp">Цена от</label>
+              <input id="f-minp" type="number" inputmode="numeric" />
+            </div>
+            <div class="input">
+              <label for="f-maxp">до</label>
+              <input id="f-maxp" type="number" inputmode="numeric" />
+            </div>
           </div>
-        </details>
 
+          <!-- Раздел «Бренды» внутри фильтров -->
+          <details id="brandsExpander" class="expander">
+            <summary>
+              <span class="title">Бренды</span>
+              <span id="brandsCount" class="count"></span>
+              <span class="chev" aria-hidden="true"></span>
+            </summary>
+            <div class="content">
+              <div class="brand-search">
+                <input id="brandSearch" type="search" placeholder="Поиск бренда" />
+              </div>
+              <div class="chipset" id="brandsBox"><!-- chips via JS --></div>
+              <button id="brandsClear" class="pill" style="align-self:flex-start">Очистить бренды</button>
+            </div>
+          </details>
+        </div>
       </div>
+
       <div class="footer">
         <button id="f-reset" class="btn">Сбросить</button>
         <button id="f-apply" class="btn primary">Применить</button>
@@ -222,13 +237,17 @@
         <div style="font-weight:700">Сортировка</div>
         <button class="close" id="s-close">Закрыть</button>
       </header>
-      <div class="form">
-        <div class="chipset">
-          <span class="chk"><input type="radio" id="s-none" name="sort" value=""><label for="s-none">Без сортировки</label></span>
-          <span class="chk"><input type="radio" id="s-asc" name="sort" value="price_asc"><label for="s-asc">Цена ↑</label></span>
-          <span class="chk"><input type="radio" id="s-desc" name="sort" value="price_desc"><label for="s-desc">Цена ↓</label></span>
+
+      <div class="dialog-scroll">
+        <div class="form">
+          <div class="chipset">
+            <span class="chk"><input type="radio" id="s-none" name="sort" value=""><label for="s-none">Без сортировки</label></span>
+            <span class="chk"><input type="radio" id="s-asc" name="sort" value="price_asc"><label for="s-asc">Цена ↑</label></span>
+            <span class="chk"><input type="radio" id="s-desc" name="sort" value="price_desc"><label for="s-desc">Цена ↓</label></span>
+          </div>
         </div>
       </div>
+
       <div class="footer">
         <button id="s-apply" class="btn primary">Применить</button>
       </div>
@@ -253,6 +272,7 @@
       search: ''
     };
 
+    /* ===== Скелетон/рендер ===== */
     function skeleton(n=6){
       const g = el('grid'); g.innerHTML='';
       for(let i=0;i<n;i++){ 
@@ -292,10 +312,10 @@
       });
     }
 
+    /* ===== Фильтрация/поиск/сортировка ===== */
     function applyFilters(){
       let list = [...state.items];
 
-      // Текстовый поиск по бренду, модели и описанию
       if(state.search){
         const q = state.search.toLowerCase();
         list = list.filter(x=>{
@@ -320,19 +340,18 @@
         list = list.filter(x => bs.includes(String(x.brand||'').toLowerCase()));
       }
 
-      // сортировка
       if(state.sort==='price_asc') list.sort((a,b)=>Number(a.price)-Number(b.price));
       if(state.sort==='price_desc') list.sort((a,b)=>Number(b.price)-Number(a.price));
 
       render(list);
     }
 
-    // Toolbar bindings
+    /* ===== Кнопки на панели ===== */
     el('openFilters').addEventListener('click', ()=> openModal('filtersModal'));
     el('openSort').addEventListener('click', ()=> openModal('sortModal'));
     el('search').addEventListener('input', (e)=>{ state.search = e.target.value.trim(); applyFilters(); });
 
-    // Filters modal setup
+    /* ===== Инициализация фильтров ===== */
     function setupFilters(){
       // chips for brands inside expander
       buildBrandChips(BRANDS);
@@ -373,7 +392,7 @@
     function buildBrandChips(list, keepSelection=false){
       const box = el('brandsBox'); box.innerHTML='';
       const selected = keepSelection ? [...state.filters.brands] : [...state.filters.brands];
-      list.forEach((b,i)=>{
+      list.forEach((b)=>{
         const id = 'brand_'+b;
         const span = document.createElement('span'); span.className='chk';
         const checked = selected.includes(b) ? 'checked' : '';
@@ -399,7 +418,7 @@
       el('brandsCount').textContent = n ? `Выбрано: ${n}` : '';
     }
 
-    // Sort modal setup
+    /* ===== Сортировка ===== */
     function setupSort(){
       el('s-apply').addEventListener('click', ()=>{
         const val = document.querySelector('input[name="sort"]:checked');
@@ -407,26 +426,47 @@
         closeModal('sortModal');
         applyFilters();
       });
-      // default "none"
       el('s-none').checked = true;
     }
 
-    // Modal helpers
+    /* ===== Модал-хелперы + блокировка фона ===== */
+    let pageScrollTop = 0;
+    let openModals = 0;
+
+    function lockBody(){
+      pageScrollTop = window.scrollY || document.documentElement.scrollTop;
+      document.body.style.top = `-${pageScrollTop}px`;
+      document.body.classList.add('modal-lock');
+    }
+    function unlockBody(){
+      document.body.classList.remove('modal-lock');
+      document.body.style.top = '';
+      window.scrollTo(0, pageScrollTop);
+    }
+
     function openModal(id){
       const m = el(id); if(!m) return;
+      if(openModals===0) lockBody();
+      openModals++;
       m.classList.add('open'); m.setAttribute('aria-hidden','false');
     }
     function closeModal(id){
       const m = el(id); if(!m) return;
       m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+      openModals = Math.max(0, openModals-1);
+      if(openModals===0) unlockBody();
     }
-    el('f-close').onclick=()=> closeModal('filtersModal');
-    el('s-close').onclick=()=> closeModal('sortModal');
+
+    // Закрытие по клику на подложку
     ['filtersModal','sortModal','modal'].forEach(mid=>{
       const m = el(mid);
       if(m) m.addEventListener('click',(e)=>{ if(e.target.id===mid) closeModal(mid); });
     });
+    el('f-close').onclick=()=> closeModal('filtersModal');
+    el('s-close').onclick=()=> closeModal('sortModal');
+    el('d-close').onclick=()=> closeModal('modal');
 
+    /* ===== Загрузка ===== */
     async function load(){
       try {
         skeleton();
@@ -438,6 +478,7 @@
       } catch(err) { console.error(err); el('empty').style.display='block'; }
     }
 
+    /* ===== Деталка товара ===== */
     function openDetails(item){
       const photos = splitPhotos(item.photos);
       const title = (item.brand||'') + ' ' + (item.model||'');
@@ -455,11 +496,14 @@
 
       openModal('modal');
     }
-    el('d-close').onclick=()=>{ closeModal('modal'); };
 
-    setupFilters();
-    setupSort();
-    load();
+    /* ===== Старт ===== */
+    function init(){
+      setupFilters();
+      setupSort();
+      load();
+    }
+    init();
   </script>
 </body>
 </html>
