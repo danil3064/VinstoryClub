@@ -26,8 +26,6 @@
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
       -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
     a{color:inherit;text-decoration:none}
-
-    /* Блокировка фона при открытом модале */
     body.modal-lock{position:fixed;overflow:hidden;width:100%}
 
     header{position:sticky;top:0;z-index:50;background:var(--panel);backdrop-filter:saturate(180%) blur(6px);
@@ -36,7 +34,6 @@
           display:grid;place-items:center;font-weight:800;letter-spacing:.5px;color:#111;box-shadow:var(--shadow)}
     h1{margin:0;font-size:18px;letter-spacing:.2px}
 
-    /* Toolbar (поиск + кнопки) */
     .toolbar{position:sticky;top:56px;z-index:40;background:var(--panel);border-bottom:1px solid var(--stroke);
              padding:10px 12px;display:flex;gap:8px;align-items:center}
     .search{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--stroke);border-radius:14px;
@@ -67,15 +64,13 @@
     .empty{padding:48px 12px;text-align:center;color:var(--muted)}
     @media (min-width:720px){ .toolbar{top:60px} .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} }
 
-    /* Общие стили модалов */
+    /* Модалы */
     .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}
     .modal.open{display:flex}
     .sheet{width:min(620px,96vw);max-height:92vh;background:#fff;border:1px solid var(--stroke);border-radius:18px;overflow:hidden;
             display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,.12)}
     .sheet header{position:relative;top:auto;background:#fff;border-bottom:1px solid var(--stroke);padding:12px 14px;display:flex;gap:8px;align-items:center}
     .close{margin-left:auto;background:#fff;border:1px solid var(--stroke);color:var(--text);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow)}
-
-    /* Прокрутка внутри модалов */
     .dialog-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff}
 
     /* Модал товара */
@@ -96,15 +91,15 @@
     .row{display:flex;gap:8px;flex-wrap:wrap}
     .form label{font-size:12px;color:var(--muted)}
     .input, .select, .chipset{background:#fff;border:1px solid var(--stroke);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow)}
-    .input{display:flex;gap:8px;align-items:center}
-    .input input{border:0;outline:none;background:transparent;width:100%;color:var(--text)}
+    .input{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+    .input input{border:0;outline:none;background:transparent;width:100%;color:var(--text);font-size:16px;padding:4px 0}
     .select{min-width:120px}
     .select select{border:0;outline:none;background:transparent;width:100%;color:var(--text);-webkit-appearance:none;appearance:none}
     .select option{color:var(--text)}
     .footer{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--stroke);background:#fff}
     .footer .btn{flex:1}
 
-    /* Раскрывающийся блок «Бренды» + стрелка */
+    /* Бренды */
     .expander{border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow);background:#fff}
     .expander summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:8px}
     .expander summary::-webkit-details-marker{display:none}
@@ -129,7 +124,6 @@
     <h1>Vinstory Club</h1>
   </header>
 
-  <!-- Верхняя панель: Поиск + Фильтры + Сортировка -->
   <div class="toolbar">
     <div class="search"><input id="search" type="search" placeholder="Поиск" /></div>
     <button id="openFilters" class="pill">Фильтры</button>
@@ -205,7 +199,7 @@
             </div>
           </div>
 
-          <!-- Раздел «Бренды» внутри фильтров -->
+          <!-- Бренды -->
           <details id="brandsExpander" class="expander">
             <summary>
               <span class="title">Бренды</span>
@@ -216,7 +210,7 @@
               <div class="brand-search">
                 <input id="brandSearch" type="search" placeholder="Поиск бренда" />
               </div>
-              <div class="chipset" id="brandsBox"><!-- chips via JS --></div>
+              <div class="chipset" id="brandsBox"></div>
               <button id="brandsClear" class="pill" style="align-self:flex-start">Очистить бренды</button>
             </div>
           </details>
@@ -264,7 +258,6 @@
     const splitPhotos = (s)=> (s||'').split(/[,;]\s*/).filter(Boolean);
     const BRANDS = ["Saucony","Asics","Reebok","Nike","Puma","Adidas","Mizuno"];
 
-    // State
     const state = {
       items: [],
       filters: { gender:'', size:'', minp:'', maxp:'', brands:[] },
@@ -272,18 +265,18 @@
       search: ''
     };
 
-    /* ===== Скелетон/рендер ===== */
     function skeleton(n=6){
       const g = el('grid'); g.innerHTML='';
       for(let i=0;i<n;i++){ 
         const d=document.createElement('div'); d.className='card';
-        d.innerHTML=`
-          <div class="thumb"></div>
-          <div class="body">
-            <div class="meta">Загрузка…</div>
-          </div>`;
+        d.innerHTML=`<div class="thumb"></div><div class="body"><div class="meta">Загрузка…</div></div>`;
         g.appendChild(d);
       }
+    }
+
+    function tgOpen(url){
+      if(window.Telegram && Telegram.WebApp){ Telegram.WebApp.openTelegramLink(url); }
+      else { window.open(url,'_blank','noopener'); }
     }
 
     function render(list){
@@ -302,17 +295,19 @@
             <p class="meta">${(x.gender==='m'?'Мужские':x.gender==='w'?'Женские':'')}<br>EU: ${x.size_eu ?? '-'}</p>
             <p class="price">${(x.price||0).toLocaleString('ru-RU')} ₽</p>
             <div class="actions">
-              <a class="btn primary" href="${CONTACT_LINK}" target="_blank" rel="noopener">Написать</a>
+              <a class="btn primary" href="${CONTACT_LINK}">Написать</a>
             </div>
           </div>`;
         const open = ()=>openDetails(x);
         card.addEventListener('click', (e)=>{ if(e.target.closest('.btn')) return; open(); });
         card.addEventListener('keydown',(e)=>{ if(e.key==='Enter') open(); });
+        // надёжный переход в чат
+        const btn = card.querySelector('.btn.primary');
+        btn.addEventListener('click',(e)=>{ e.preventDefault(); tgOpen(CONTACT_LINK); });
         grid.appendChild(card);
       });
     }
 
-    /* ===== Фильтрация/поиск/сортировка ===== */
     function applyFilters(){
       let list = [...state.items];
 
@@ -346,17 +341,13 @@
       render(list);
     }
 
-    /* ===== Кнопки на панели ===== */
     el('openFilters').addEventListener('click', ()=> openModal('filtersModal'));
     el('openSort').addEventListener('click', ()=> openModal('sortModal'));
     el('search').addEventListener('input', (e)=>{ state.search = e.target.value.trim(); applyFilters(); });
 
-    /* ===== Инициализация фильтров ===== */
     function setupFilters(){
-      // chips for brands inside expander
       buildBrandChips(BRANDS);
 
-      // live brand search
       el('brandSearch').addEventListener('input', (e)=>{
         const q = e.target.value.trim().toLowerCase();
         const filtered = BRANDS.filter(b=>b.toLowerCase().includes(q));
@@ -365,7 +356,10 @@
 
       el('brandsClear').addEventListener('click', ()=>{
         state.filters.brands = [];
-        updateBrandsUI();
+        // снять чекбоксы и обновить отображение по текущему поисковому списку
+        const q = el('brandSearch').value.trim().toLowerCase();
+        const filtered = BRANDS.filter(b=>b.toLowerCase().includes(q));
+        buildBrandChips(filtered, false);
         applyFilters();
       });
 
@@ -383,8 +377,7 @@
         state.search = '';
         el('search').value='';
         el('brandSearch').value='';
-        buildBrandChips(BRANDS);
-        updateBrandsUI();
+        buildBrandChips(BRANDS, false);
         applyFilters();
       });
     }
@@ -418,7 +411,6 @@
       el('brandsCount').textContent = n ? `Выбрано: ${n}` : '';
     }
 
-    /* ===== Сортировка ===== */
     function setupSort(){
       el('s-apply').addEventListener('click', ()=>{
         const val = document.querySelector('input[name="sort"]:checked');
@@ -429,20 +421,9 @@
       el('s-none').checked = true;
     }
 
-    /* ===== Модал-хелперы + блокировка фона ===== */
-    let pageScrollTop = 0;
-    let openModals = 0;
-
-    function lockBody(){
-      pageScrollTop = window.scrollY || document.documentElement.scrollTop;
-      document.body.style.top = `-${pageScrollTop}px`;
-      document.body.classList.add('modal-lock');
-    }
-    function unlockBody(){
-      document.body.classList.remove('modal-lock');
-      document.body.style.top = '';
-      window.scrollTo(0, pageScrollTop);
-    }
+    let pageScrollTop = 0, openModals = 0;
+    function lockBody(){ pageScrollTop = window.scrollY||document.documentElement.scrollTop; document.body.style.top=`-${pageScrollTop}px`; document.body.classList.add('modal-lock'); }
+    function unlockBody(){ document.body.classList.remove('modal-lock'); document.body.style.top=''; window.scrollTo(0,pageScrollTop); }
 
     function openModal(id){
       const m = el(id); if(!m) return;
@@ -457,7 +438,6 @@
       if(openModals===0) unlockBody();
     }
 
-    // Закрытие по клику на подложку
     ['filtersModal','sortModal','modal'].forEach(mid=>{
       const m = el(mid);
       if(m) m.addEventListener('click',(e)=>{ if(e.target.id===mid) closeModal(mid); });
@@ -466,7 +446,6 @@
     el('s-close').onclick=()=> closeModal('sortModal');
     el('d-close').onclick=()=> closeModal('modal');
 
-    /* ===== Загрузка ===== */
     async function load(){
       try {
         skeleton();
@@ -478,7 +457,6 @@
       } catch(err) { console.error(err); el('empty').style.display='block'; }
     }
 
-    /* ===== Деталка товара ===== */
     function openDetails(item){
       const photos = splitPhotos(item.photos);
       const title = (item.brand||'') + ' ' + (item.model||'');
@@ -487,22 +465,19 @@
       el('d-meta').textContent = `Пол: ${(item.gender==='m'?'м':item.gender==='w'?'ж':'-')}`;
       el('d-price').textContent = (item.price||0).toLocaleString('ru-RU') + ' ₽';
       el('d-desc').textContent = item.description || '';
-      el('d-tg').href = CONTACT_LINK;
 
       const strip = el('d-strip'); strip.innerHTML='';
       function show(i){ el('d-big').src = photos[i] || ''; [...strip.children].forEach((c,ix)=>c.classList.toggle('active',ix===i)); }
       photos.forEach((src,i)=>{ const t=document.createElement('img'); t.src=src; if(i===0) t.classList.add('active'); t.onclick=()=>show(i); strip.appendChild(t); });
       show(0);
 
+      const dBtn = el('d-tg');
+      dBtn.onclick = (e)=>{ e.preventDefault(); tgOpen(CONTACT_LINK); };
+
       openModal('modal');
     }
 
-    /* ===== Старт ===== */
-    function init(){
-      setupFilters();
-      setupSort();
-      load();
-    }
+    function init(){ setupFilters(); setupSort(); load(); }
     init();
   </script>
 </body>
