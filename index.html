@@ -31,14 +31,15 @@
     .logo{width:28px;height:28px;border-radius:8px;background:#fff;border:1px solid var(--stroke);
           display:grid;place-items:center;font-weight:800;letter-spacing:.5px;color:#111;box-shadow:var(--shadow)}
     h1{margin:0;font-size:18px;letter-spacing:.2px}
-    .reset{margin-left:auto;background:#fff;border:1px solid var(--stroke);padding:8px 12px;border-radius:10px;
-            color:var(--text);box-shadow:var(--shadow)}
 
-    .filters{position:sticky;top:56px;z-index:40;background:var(--panel);border-bottom:1px solid var(--stroke);
-             padding:10px 12px;display:flex;gap:8px;overflow:auto}
-    .filters select,.filters input{appearance:none;background:#fff;border:1px solid var(--stroke);color:var(--text);
-       padding:10px 12px;border-radius:12px;min-width:120px;box-shadow:var(--shadow)}
-    .filters input[type=number]{width:110px}
+    /* Toolbar (поиск + кнопки) */
+    .toolbar{position:sticky;top:56px;z-index:40;background:var(--panel);border-bottom:1px solid var(--stroke);
+             padding:10px 12px;display:flex;gap:8px;align-items:center}
+    .search{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--stroke);border-radius:12px;
+            padding:10px 12px;box-shadow:var(--shadow)}
+    .search input{border:0;outline:none;background:transparent;width:100%;font-size:14px;color:var(--text)}
+    .search input::placeholder{color:#9a9a9a}
+    .chipbtn{background:#fff;border:1px solid var(--stroke);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);cursor:pointer}
 
     .wrap{padding:14px}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
@@ -57,50 +58,74 @@
     .btn.primary:active{background:var(--accent-soft)}
     .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;border:1px solid var(--stroke);background:#fff;box-shadow:var(--shadow)}
     .empty{padding:48px 12px;text-align:center;color:var(--muted)}
-    @media (min-width:720px){ .filters{top:60px} .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} }
+    @media (min-width:720px){ .toolbar{top:60px} .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} }
 
+    /* Product modal */
     .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}
     .modal.open{display:flex}
     .sheet{width:min(620px,96vw);max-height:92vh;background:#fff;border:1px solid var(--stroke);border-radius:18px;overflow:hidden;
             display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,.12)}
     .sheet header{position:relative;top:auto;background:#fff;border-bottom:1px solid var(--stroke);padding:12px 14px;display:flex;gap:8px;align-items:center}
     .close{margin-left:auto;background:#fff;border:1px solid var(--stroke);color:var(--text);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow)}
+    .sheet-scroll{flex:1;overflow:auto;background:#fff}
     .gallery{background:#fff;display:flex;align-items:center;justify-content:center}
     .big{max-height:54vh;max-width:100%;width:100%;object-fit:contain;background:#fff;display:block}
     .strip{display:flex;gap:6px;overflow:auto;padding:8px;background:#f7f5f2;border-top:1px solid var(--stroke)}
     .strip img{height:68px;border-radius:10px;opacity:.88;cursor:pointer;box-shadow:var(--shadow);border:1px solid var(--stroke);background:#fff;display:block}
     .strip img.active{outline:2px solid var(--brand);opacity:1}
-    .content{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-    .buy{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--stroke);background:#fff}
+    .content{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+    .desc{font-size:13px;line-height:1.5;color:#333;white-space:pre-wrap}
+    .buy{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--stroke);background:#fff}
+    .buy .price{font-weight:700}
+    .buy .btn{flex:0 0 auto;min-width:44%}
+
+    /* Баннер-подсказка «Открыть в Telegram» (виден только вне Telegram) */
+    .tg-hint{display:none;position:sticky;top:0;z-index:60;padding:10px 12px;background:#111;color:#fff;border-bottom:1px solid var(--stroke)}
+    .tg-hint a{display:inline-block;background:#fff;color:#111;border-radius:10px;padding:8px 12px;margin-left:8px}
+
+    /* Filters/Sort modals */
+    .sheet.small{width:min(560px,96vw)}
+    .form{display:flex;flex-direction:column;gap:12px;padding:12px 14px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .form label{font-size:12px;color:var(--muted)}
+    .input, .select, .chipset{background:#fff;border:1px solid var(--stroke);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow)}
+    .input{display:flex;gap:8px;align-items:center}
+    .input input{border:0;outline:none;background:transparent;width:100%}
+    .select{min-width:120px}
+    .chipset{display:flex;gap:8px;flex-wrap:wrap}
+    .chipset .chk{position:relative}
+    .chipset input{display:none}
+    .chipset label{display:inline-block;border:1px solid var(--stroke);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer}
+    .chipset input:checked + label{border-color:#111;background:#111;color:#fff}
+    .footer{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--stroke);background:#fff}
+    .footer .btn{flex:1}
   </style>
 </head>
 <body>
   <header>
     <div class="logo">V</div>
     <h1>Vinstory Club</h1>
-    <button id="reset" class="reset">Сброс</button>
   </header>
 
-  <div class="filters">
-    <select id="gender">
-      <option value="">Пол: все</option>
-      <option value="m">Мужские</option>
-      <option value="w">Женские</option>
-    </select>
-    <select id="size">
-      <option value="">Размер EU</option>
-      <option>36</option><option>37</option><option>38</option><option>39</option><option>40</option>
-      <option>41</option><option>42</option><option>43</option><option>44</option><option>45</option>
-    </select>
-    <input id="minp" type="number" inputmode="numeric" placeholder="Цена от" />
-    <input id="maxp" type="number" inputmode="numeric" placeholder="до" />
+  <!-- Подсказка открыть Mini App внутри Telegram -->
+  <div id="tgHint" class="tg-hint">
+    Открой в Telegram, чтобы использовать приложение без ограничений.
+    <a id="openInTg" target="_blank" rel="noopener">Открыть в Telegram</a>
+  </div>
+
+  <!-- Верхняя панель: Поиск + Фильтры + Сортировка -->
+  <div class="toolbar">
+    <div class="search"><input id="search" type="search" placeholder="Поиск" /></div>
+    <button id="openFilters" class="chipbtn">Фильтры</button>
+    <button id="openSort" class="chipbtn">Сортировка</button>
   </div>
 
   <div class="wrap">
     <div id="grid" class="grid"></div>
-    <div id="empty" class="empty" style="display:none">Пока нет товаров по фильтрам</div>
+    <div id="empty" class="empty" style="display:none">Пока нет товаров по условиям</div>
   </div>
 
+  <!-- Модал товара -->
   <div id="modal" class="modal" aria-hidden="true">
     <div class="sheet">
       <header>
@@ -108,45 +133,136 @@
         <span class="chip" id="d-chip"></span>
         <button class="close" id="d-close">Закрыть</button>
       </header>
-      <div class="gallery">
-        <img id="d-big" class="big" src="" alt="Фото товара">
+
+      <div class="sheet-scroll">
+        <div class="gallery">
+          <img id="d-big" class="big" src="" alt="Фото товара">
+        </div>
+        <div id="d-strip" class="strip"></div>
+        <div class="content">
+          <div id="d-meta" class="meta"></div>
+          <div id="d-desc" class="desc"></div>
+        </div>
       </div>
-      <div id="d-strip" class="strip"></div>
-      <div class="content">
-        <div id="d-meta" class="meta"></div>
-        <div id="d-price" class="price"></div>
-      </div>
+
       <div class="buy">
+        <div id="d-price" class="price"></div>
         <a id="d-tg" class="btn primary" target="_blank" rel="noopener">Написать в Telegram</a>
-        <a id="d-top" class="btn" href="#">Наверх</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модал фильтров -->
+  <div id="filtersModal" class="modal" aria-hidden="true">
+    <div class="sheet small">
+      <header>
+        <div style="font-weight:700">Фильтры</div>
+        <button class="close" id="f-close">Закрыть</button>
+      </header>
+      <div class="form">
+        <div class="row">
+          <div class="select">
+            <label for="f-gender">Пол</label>
+            <select id="f-gender" style="border:0;outline:none;background:transparent;width:100%">
+              <option value="">Все</option>
+              <option value="m">Мужские</option>
+              <option value="w">Женские</option>
+            </select>
+          </div>
+          <div class="select">
+            <label for="f-size">Размер EU</label>
+            <select id="f-size" style="border:0;outline:none;background:transparent;width:100%">
+              <option value="">Любой</option>
+              <option>36</option><option>37</option><option>38</option><option>39</option>
+              <option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option>
+            </select>
+          </div>
+          <div class="input">
+            <label for="f-minp">Цена от</label>
+            <input id="f-minp" type="number" inputmode="numeric" />
+          </div>
+          <div class="input">
+            <label for="f-maxp">до</label>
+            <input id="f-maxp" type="number" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div>
+          <label>Бренды</label>
+          <div class="chipset" id="f-brands">
+            <!-- checkboxes via JS -->
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <button id="f-reset" class="btn">Сбросить</button>
+        <button id="f-apply" class="btn primary">Применить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модал сортировки -->
+  <div id="sortModal" class="modal" aria-hidden="true">
+    <div class="sheet small">
+      <header>
+        <div style="font-weight:700">Сортировка</div>
+        <button class="close" id="s-close">Закрыть</button>
+      </header>
+      <div class="form">
+        <div class="chipset">
+          <span class="chk"><input type="radio" id="s-none" name="sort" value=""><label for="s-none">Без сортировки</label></span>
+          <span class="chk"><input type="radio" id="s-asc" name="sort" value="price_asc"><label for="s-asc">Цена ↑</label></span>
+          <span class="chk"><input type="radio" id="s-desc" name="sort" value="price_desc"><label for="s-desc">Цена ↓</label></span>
+        </div>
+      </div>
+      <div class="footer">
+        <button id="s-apply" class="btn primary">Применить</button>
       </div>
     </div>
   </div>
 
   <script>
+    const BOT_USERNAME = "YOUR_BOT_USERNAME"; // замени, например "vinstoryclub_bot"
+    const isInTelegram = !!(window.Telegram && Telegram.WebApp && Telegram.WebApp.initData);
     if (window.Telegram && Telegram.WebApp) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
     }
+    // Показать баннер и дать кнопку «Открыть в Telegram», если открыто в браузере
+    (function setupOpenInTelegram(){
+      const link = `https://t.me/${BOT_USERNAME}?startapp=1`;
+      const hint = document.getElementById('tgHint');
+      const a = document.getElementById('openInTg');
+      if(a) a.href = link;
+      if(!isInTelegram && hint) hint.style.display = 'block';
+    })();
 
     const supabaseUrl = "https://prtkjlguydfrbekjxmeb.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydGtqbGd1eWRmcmJla2p4bWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NjM5NTEsImV4cCI6MjA3MDQzOTk1MX0.JqHlRNw7IYNtygM3Ot18SR2xrjljlWUFkvqUInm9xeI";
     const db = supabase.createClient(supabaseUrl, supabaseKey);
 
     const CONTACT_LINK = "https://t.me/danissimmooo04";
-    const state = { items: [] };
     const el = (id)=>document.getElementById(id);
     const splitPhotos = (s)=> (s||'').split(/[,;]\s*/).filter(Boolean);
+    const BRANDS = ["Saucony","Asics","Reebok","Nike","Puma","Adidas","Mizuno"];
+
+    // State
+    const state = {
+      items: [],
+      filters: { gender:'', size:'', minp:'', maxp:'', brands:[] },
+      sort: '',
+      search: ''
+    };
 
     function skeleton(n=6){
       const g = el('grid'); g.innerHTML='';
       for(let i=0;i<n;i++){ 
         const d=document.createElement('div'); d.className='card';
-        d.innerHTML=`<div class="thumb skeleton"></div>
-                     <div class="body">
-                       <div class="skeleton" style="height:12px;border-radius:8px;width:60%;margin-top:10px"></div>
-                       <div class="skeleton" style="height:12px;border-radius:8px;width:40%;margin-top:10px"></div>
-                     </div>`;
+        d.innerHTML=`
+          <div class="thumb"></div>
+          <div class="body">
+            <div class="meta">Загрузка…</div>
+          </div>`;
         g.appendChild(d);
       }
     }
@@ -171,7 +287,6 @@
             </div>
           </div>`;
         const open = ()=>openDetails(x);
-        // клик по всей карточке, кроме кнопки
         card.addEventListener('click', (e)=>{ if(e.target.closest('.btn')) return; open(); });
         card.addEventListener('keydown',(e)=>{ if(e.key==='Enter') open(); });
         grid.appendChild(card);
@@ -179,23 +294,102 @@
     }
 
     function applyFilters(){
-      const g = el('gender').value;
-      const s = el('size').value;
-      const min = parseInt(el('minp').value||'0',10);
-      const max = parseInt(el('maxp').value||'0',10);
       let list = [...state.items];
+
+      // Текстовый поиск по бренду, модели и описанию
+      if(state.search){
+        const q = state.search.toLowerCase();
+        list = list.filter(x=>{
+          const text = ((x.brand||'')+' '+(x.model||'')+' '+(x.description||'')).toLowerCase();
+          return text.includes(q);
+        });
+      }
+
+      const { gender:g, size:s, minp, maxp, brands } = state.filters;
       if(g) list = list.filter(x=> (x.gender||'').toLowerCase()===g );
-      if(s) list = list.filter(x=>String(x.size_eu)===String(s));
-      if(min) list = list.filter(x=>Number(x.price)>=min);
-      if(max) list = list.filter(x=>Number(x.price)<=max);
+      if(s){
+        list = list.filter(x=>{
+          const v = parseFloat(x.size_eu);
+          if(!isFinite(v)) return String(x.size_eu)===String(s);
+          return Math.floor(v)===parseInt(s,10); // 40.5 попадает в 40
+        });
+      }
+      if(minp) list = list.filter(x=>Number(x.price)>=Number(minp));
+      if(maxp) list = list.filter(x=>Number(x.price)<=Number(maxp));
+      if(brands && brands.length){
+        const bs = brands.map(b=>b.toLowerCase());
+        list = list.filter(x => bs.includes(String(x.brand||'').toLowerCase()));
+      }
+
+      // сортировка
+      if(state.sort==='price_asc') list.sort((a,b)=>Number(a.price)-Number(b.price));
+      if(state.sort==='price_desc') list.sort((a,b)=>Number(b.price)-Number(a.price));
+
       render(list);
     }
 
-    function bindFilters(){
-      ['gender','size','minp','maxp'].forEach(id=> el(id).addEventListener('change', applyFilters));
-      ['minp','maxp'].forEach(id=> el(id).addEventListener('input', applyFilters));
-      el('reset').addEventListener('click', ()=>{ ['gender','size','minp','maxp'].forEach(id=> el(id).value=''); render(state.items); });
+    // Toolbar bindings
+    el('openFilters').addEventListener('click', ()=> openModal('filtersModal', true));
+    el('openSort').addEventListener('click', ()=> openModal('sortModal', true));
+    el('search').addEventListener('input', (e)=>{ state.search = e.target.value.trim(); applyFilters(); });
+
+    // Filters modal setup
+    function setupFilters(){
+      // brands chips
+      const box = el('f-brands');
+      BRANDS.forEach((b,i)=>{
+        const id = 'brand_'+i;
+        const span = document.createElement('span'); span.className='chk';
+        span.innerHTML = `<input type="checkbox" id="${id}" value="${b}"><label for="${id}">${b}</label>`;
+        box.appendChild(span);
+      });
+      el('f-apply').addEventListener('click', ()=>{
+        state.filters.gender = el('f-gender').value;
+        state.filters.size = el('f-size').value;
+        state.filters.minp = el('f-minp').value;
+        state.filters.maxp = el('f-maxp').value;
+        const selected = [...box.querySelectorAll('input:checked')].map(i=>i.value);
+        state.filters.brands = selected;
+        closeModal('filtersModal');
+        applyFilters();
+      });
+      el('f-reset').addEventListener('click', ()=>{
+        ['f-gender','f-size','f-minp','f-maxp'].forEach(id=> el(id).value='');
+        box.querySelectorAll('input:checked').forEach(i=> i.checked=false);
+        state.filters = { gender:'', size:'', minp:'', maxp:'', brands:[] };
+        state.search = '';
+        el('search').value='';
+        applyFilters();
+      });
     }
+
+    // Sort modal setup
+    function setupSort(){
+      el('s-apply').addEventListener('click', ()=>{
+        const val = document.querySelector('input[name="sort"]:checked');
+        state.sort = val ? val.value : '';
+        closeModal('sortModal');
+        applyFilters();
+      });
+      // default "none"
+      el('s-none').checked = true;
+    }
+
+    // Modal helpers
+    function openModal(id, trap){
+      const m = el(id); if(!m) return;
+      m.classList.add('open'); m.setAttribute('aria-hidden','false');
+    }
+    function closeModal(id){
+      const m = el(id); if(!m) return;
+      m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+    }
+    el('f-close').onclick=()=> closeModal('filtersModal');
+    el('s-close').onclick=()=> closeModal('sortModal');
+    ['filtersModal','sortModal'].forEach(mid=>{
+      const m = el(mid);
+      if(m) m.addEventListener('click',(e)=>{ if(e.target.id===mid) closeModal(mid); });
+    });
 
     async function load(){
       try {
@@ -203,7 +397,7 @@
         const { data, error } = await db.from('vinstory').select('*').order('id',{ascending:false});
         if(error) throw error;
         state.items = data||[];
-        render(state.items);
+        applyFilters();
       } catch(err) { console.error(err); el('empty').style.display='block'; }
     }
 
@@ -214,18 +408,22 @@
       el('d-chip').textContent = 'EU ' + (item.size_eu||'-');
       el('d-meta').textContent = `Пол: ${(item.gender==='m'?'м':item.gender==='w'?'ж':'-')}`;
       el('d-price').textContent = (item.price||0).toLocaleString('ru-RU') + ' ₽';
+      el('d-desc').textContent = item.description || '';
       el('d-tg').href = CONTACT_LINK;
+
       const strip = el('d-strip'); strip.innerHTML='';
       function show(i){ el('d-big').src = photos[i] || ''; [...strip.children].forEach((c,ix)=>c.classList.toggle('active',ix===i)); }
       photos.forEach((src,i)=>{ const t=document.createElement('img'); t.src=src; if(i===0) t.classList.add('active'); t.onclick=()=>show(i); strip.appendChild(t); });
       show(0);
-      el('modal').classList.add('open'); el('modal').setAttribute('aria-hidden','false');
-      document.getElementById('d-top').onclick = (e)=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});};
-    }
-    el('d-close').onclick=()=>{ el('modal').classList.remove('open'); el('modal').setAttribute('aria-hidden','true'); };
-    el('modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') el('d-close').click(); });
 
-    bindFilters(); load();
+      openModal('modal');
+    }
+    el('d-close').onclick=()=>{ closeModal('modal'); };
+    el('modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') closeModal('modal'); });
+
+    setupFilters();
+    setupSort();
+    load();
   </script>
 </body>
 </html>
