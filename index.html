@@ -103,24 +103,25 @@
     .chipset{display:flex;gap:8px;flex-wrap:wrap}
     .chipset .chk{position:relative}
     .chipset input{display:none}
-    .chipset label{display:inline-block;border:1px solid var(--stroke);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;color:var(--text)}
+    .chipset label{display:inline-block;border:1px solid var(--stroke);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;color:#000}
     .chipset input:checked + label{border-color:#111;background:#111;color:#fff}
     .brand-search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--stroke);border-radius:12px;padding:8px 12px}
     .brand-search input{border:0;outline:none;background:transparent;width:100%}
 
-    /* Диапазон цены */
+    /* Диапазон цены (компактный) */
     .price-row{display:flex;gap:8px;flex-wrap:wrap}
     .price-field{flex:1;min-width:120px;background:#fff;border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow);
       padding:8px 12px;display:flex;flex-direction:column;gap:4px}
     .price-field label{font-size:12px;color:var(--muted)}
     .price-field input{border:0;outline:none;background:transparent;font-size:16px;color:var(--text);padding:2px 0}
-    .range-wrap{position:relative;height:32px;margin-top:4px}
-    .range{position:absolute;left:0;right:0;top:8px;height:4px;border-radius:999px;background:#e7e1d8}
+
+    .range-wrap{position:relative;height:28px;margin-top:4px}
+    .range{position:absolute;left:0;right:0;top:12px;height:2px;border-radius:999px;background:#e7e1d8}
     .range-fill{position:absolute;height:100%;border-radius:999px;background:#111}
-    .thumb-range{position:absolute;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent;height:4px;outline:none}
-    .thumb-range::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
-      background:#111;border:2px solid #0e0e0e;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-    .thumb-range::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:50%;background:#111;border:2px solid #0e0e0e}
+    .thumb-range{position:absolute;left:0;right:0;top:0;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent;height:28px}
+    .thumb-range::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+      background:#111;border:2px solid #0e0e0e;box-shadow:0 2px 6px rgba(0,0,0,.14)}
+    .thumb-range::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#111;border:2px solid #0e0e0e}
   </style>
 </head>
 <body>
@@ -191,7 +192,7 @@
             </div>
           </div>
 
-          <!-- Цена: как в магазинах -->
+          <!-- Цена -->
           <details id="priceExpander" class="expander" open>
             <summary>
               <span class="title">Цена</span>
@@ -210,7 +211,7 @@
                 </div>
               </div>
               <div class="range-wrap">
-                <div class="range" id="rangeTrack"><div class="range-fill" id="rangeFill" style="left:0%;right:0%"></div></div>
+                <div class="range"><div class="range-fill" id="rangeFill" style="left:0%;right:0%"></div></div>
                 <input id="r-min" class="thumb-range" type="range">
                 <input id="r-max" class="thumb-range" type="range">
               </div>
@@ -276,26 +277,24 @@
     function tgOpen(url){if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.openTelegramLink(url);}else{window.open(url,'_blank','noopener');}}
 
     function render(list){
-      const grid=el('grid');grid.innerHTML='';
-      if(!list.length){el('empty').style.display='block';return;}
+      const grid=el('grid'); grid.innerHTML='';
+      if(!list.length){el('empty').style.display='block'; return;}
       el('empty').style.display='none';
       list.forEach(x=>{
-        const photos=splitPhotos(x.photos);const cover=photos[0]||'';const title=(x.brand||'')+' '+(x.model||'');
-        const card=document.createElement('div');card.className='card';card.tabIndex=0;
+        const photos=splitPhotos(x.photos); const cover=photos[0]||''; const title=(x.brand||'')+' '+(x.model||'');
+        const card=document.createElement('div'); card.className='card'; card.tabIndex=0;
         card.innerHTML=`
           <img class="thumb" src="${cover}" alt="${title}" loading="lazy">
           <div class="body">
             <p class="title">${title}</p>
             <p class="meta">${(x.gender==='m'?'Мужские':x.gender==='w'?'Женские':'')}<br>EU: ${x.size_eu ?? '-'}</p>
             <p class="price">${(x.price||0).toLocaleString('ru-RU')} ₽</p>
-            <div class="actions">
-              <a class="btn primary" href="${CONTACT_LINK}">Написать</a>
-            </div>
+            <div class="actions"><a class="btn primary" href="${CONTACT_LINK}">Написать</a></div>
           </div>`;
         const open=()=>openDetails(x);
-        card.addEventListener('click',e=>{if(e.target.closest('.btn'))return;open();});
-        card.addEventListener('keydown',e=>{if(e.key==='Enter')open();});
-        card.querySelector('.btn.primary').addEventListener('click',e=>{e.preventDefault();tgOpen(CONTACT_LINK);});
+        card.addEventListener('click',e=>{if(e.target.closest('.btn')) return; open();});
+        card.addEventListener('keydown',e=>{if(e.key==='Enter') open();});
+        card.querySelector('.btn.primary').addEventListener('click',e=>{e.preventDefault(); tgOpen(CONTACT_LINK);});
         grid.appendChild(card);
       });
     }
@@ -308,10 +307,10 @@
       }
       const {gender:g,size:s,minp,maxp,brands}=state.filters;
       if(g) list=list.filter(x=>(x.gender||'').toLowerCase()===g);
-      if(s) list=list.filter(x=>{const v=parseFloat(x.size_eu);if(!isFinite(v))return String(x.size_eu)===String(s);return Math.floor(v)===parseInt(s,10);});
+      if(s) list=list.filter(x=>{const v=parseFloat(x.size_eu); if(!isFinite(v)) return String(x.size_eu)===String(s); return Math.floor(v)===parseInt(s,10);});
       if(minp) list=list.filter(x=>Number(x.price)>=Number(minp));
       if(maxp) list=list.filter(x=>Number(x.price)<=Number(maxp));
-      if(brands&&brands.length){const bs=brands.map(b=>b.toLowerCase());list=list.filter(x=>bs.includes(String(x.brand||'').toLowerCase()));}
+      if(brands&&brands.length){const bs=brands.map(b=>b.toLowerCase()); list=list.filter(x=>bs.includes(String(x.brand||'').toLowerCase()));}
       if(state.sort==='price_asc') list.sort((a,b)=>Number(a.price)-Number(b.price));
       if(state.sort==='price_desc') list.sort((a,b)=>Number(b.price)-Number(a.price));
       render(list);
@@ -320,56 +319,67 @@
     // Панель
     el('openFilters').addEventListener('click',()=>openModal('filtersModal'));
     el('openSort').addEventListener('click',()=>openModal('sortModal'));
-    el('search').addEventListener('input',e=>{state.search=e.target.value.trim();applyFilters();});
+    el('search').addEventListener('input',e=>{state.search=e.target.value.trim(); applyFilters();});
 
-    // ====== Цена (UI + логика) ======
+    /* ===== Цена ===== */
     function setupPriceBounds(){
-      if(!state.items.length){state.priceBounds={min:0,max:0};return;}
+      if(!state.items.length){state.priceBounds={min:0,max:0}; return;}
       const prices=state.items.map(x=>Number(x.price)||0);
       const min=Math.min(...prices), max=Math.max(...prices);
       state.priceBounds={min,max};
-      // установить значения по умолчанию, если не выбраны
-      if(!state.filters.minp) state.filters.minp=min;
-      if(!state.filters.maxp) state.filters.maxp=max;
-      initPriceControls(min,max,Number(state.filters.minp),Number(state.filters.maxp));
+      // не проставляем значения в поля — они пустые по умолчанию
+      initPriceControls(min,max);
     }
 
-    function initPriceControls(min,max,vMin,vMax){
+    function initPriceControls(min,max){
       const rmin=el('r-min'), rmax=el('r-max');
-      [rmin,rmax].forEach(r=>{r.min=min;r.max=max;r.step=50;});
-      rmin.value=vMin; rmax.value=vMax;
-      el('p-min').value=vMin; el('p-max').value=vMax;
+      [rmin,rmax].forEach(r=>{r.min=min; r.max=max; r.step=10;}); // шаг 10 ₽
+      rmin.value=min; rmax.value=max; // ручки стоят на полном диапазоне
+      // поля пустые, пока пользователь не вводит/двигает
+      el('p-min').value = state.filters.minp || '';
+      el('p-max').value = state.filters.maxp || '';
       updateRangeFill();
       // handlers
-      rmin.oninput=()=>{ let a=Number(rmin.value), b=Number(rmax.value); if(a>b){a=b; rmin.value=a;} syncPriceFromRange(); };
-      rmax.oninput=()=>{ let a=Number(rmin.value), b=Number(rmax.value); if(b<a){b=a; rmax.value=b;} syncPriceFromRange(); };
-      el('p-min').addEventListener('input',()=>{ let a=Number(el('p-min').value)||min; a=Math.max(min,Math.min(a,Number(rmax.value))); rmin.value=a; syncRangeFromInputs(); });
-      el('p-max').addEventListener('input',()=>{ let b=Number(el('p-max').value)||max; b=Math.min(max,Math.max(b,Number(rmin.value))); rmax.value=b; syncRangeFromInputs(); });
+      rmin.oninput=()=>{ let a=+rmin.value, b=+rmax.value; if(a>b){a=b; rmin.value=a;} syncPriceFromRange(); };
+      rmax.oninput=()=>{ let a=+rmin.value, b=+rmax.value; if(b<a){b=a; rmax.value=b;} syncPriceFromRange(); };
+      el('p-min').addEventListener('input',()=>{
+        let a=Number(el('p-min').value);
+        if(Number.isNaN(a)) a=min;
+        a=Math.max(min,Math.min(a,+rmax.value));
+        rmin.value=a; syncRangeFromInputs();
+      });
+      el('p-max').addEventListener('input',()=>{
+        let b=Number(el('p-max').value);
+        if(Number.isNaN(b)) b=max;
+        b=Math.min(max,Math.max(b,+rmin.value));
+        rmax.value=b; syncRangeFromInputs();
+      });
     }
 
-    function percent(val,min,max){ return ( (val-min) / (max-min) ) * 100; }
-
+    function percent(v,min,max){ return ((v-min)/(max-min))*100; }
     function updateRangeFill(){
       const {min,max}=state.priceBounds;
-      const a=Number(el('r-min').value), b=Number(el('r-max').value);
-      const left=percent(a,min,max), right=100-percent(b,min,max);
-      const fill=el('rangeFill'); fill.style.left=`${left}%`; fill.style.right=`${right}%`;
-      // метка выбранного диапазона в заголовке
-      el('priceCount').textContent = (a>min || b<max) ? `${a.toLocaleString('ru-RU')}–${b.toLocaleString('ru-RU')} ₽` : '';
+      const a=+el('r-min').value, b=+el('r-max').value;
+      el('rangeFill').style.left = `${percent(a,min,max)}%`;
+      el('rangeFill').style.right = `${100-percent(b,min,max)}%`;
+      // метка в заголовке показываем только если диапазон сузили
+      el('priceCount').textContent = (a>min || b<max)
+        ? `${a.toLocaleString('ru-RU')}–${b.toLocaleString('ru-RU')} ₽` : '';
     }
-
     function syncPriceFromRange(){
-      el('p-min').value=el('r-min').value;
-      el('p-max').value=el('r-max').value;
+      // переносим значения в инпуты, но сохраняем пустоту, если пользователь их не трогал? — заполняем для наглядности
+      el('p-min').value = +el('r-min').value;
+      el('p-max').value = +el('r-max').value;
       updateRangeFill();
     }
     function syncRangeFromInputs(){
-      el('r-min').value=el('p-min').value || state.priceBounds.min;
-      el('r-max').value=el('p-max').value || state.priceBounds.max;
+      const {min,max}=state.priceBounds;
+      el('r-min').value = el('p-min').value || min;
+      el('r-max').value = el('p-max').value || max;
       updateRangeFill();
     }
 
-    // ====== Бренды ======
+    /* ===== Бренды ===== */
     function setupBrands(){
       buildBrandChips(BRANDS);
       el('brandSearch').addEventListener('input',e=>{
@@ -383,7 +393,6 @@
         applyFilters();
       });
     }
-
     function buildBrandChips(list,keep=false){
       const box=el('brandsBox'); box.innerHTML='';
       const selected=keep?[...state.filters.brands]:[...state.filters.brands];
@@ -406,7 +415,7 @@
     }
     function updateBrandsUI(){ const n=state.filters.brands.length; el('brandsCount').textContent = n?`Выбрано: ${n}`:''; }
 
-    // ====== Применить/Сбросить ======
+    /* ===== Применить/Сбросить ===== */
     el('f-apply').addEventListener('click',()=>{
       state.filters.gender=el('f-gender').value;
       state.filters.size=el('f-size').value;
@@ -419,21 +428,21 @@
       state.filters={gender:'',size:'',minp:'',maxp:'',brands:[]};
       el('search').value=''; state.search='';
       el('brandSearch').value=''; buildBrandChips(BRANDS,false);
-      // цена в дефолтные границы
-      el('p-min').value=state.priceBounds.min;
-      el('p-max').value=state.priceBounds.max;
-      syncRangeFromInputs();
+      // вернём ручки ползунка к полным границам, а поля оставим пустыми
+      const {min,max}=state.priceBounds;
+      el('p-min').value=''; el('p-max').value='';
+      el('r-min').value=min; el('r-max').value=max; updateRangeFill();
       applyFilters();
     });
 
-    // ====== Сортировка ======
+    /* ===== Сортировка ===== */
     el('s-apply').addEventListener('click',()=>{
       const val=document.querySelector('input[name="sort"]:checked');
       state.sort=val?val.value:''; closeModal('sortModal'); applyFilters();
     });
     el('s-none').checked=true;
 
-    // ====== Модалы + блокировка фона ======
+    /* ===== Модалы + блокировка фона ===== */
     let pageScrollTop=0, openModals=0;
     function lockBody(){pageScrollTop=window.scrollY||document.documentElement.scrollTop;document.body.style.top=`-${pageScrollTop}px`;document.body.classList.add('modal-lock');}
     function unlockBody(){document.body.classList.remove('modal-lock');document.body.style.top='';window.scrollTo(0,pageScrollTop);}
@@ -444,7 +453,7 @@
     el('s-close').onclick=()=>closeModal('sortModal');
     el('d-close').onclick=()=>closeModal('modal');
 
-    // ====== Загрузка ======
+    /* ===== Загрузка ===== */
     async function load(){
       try{
         skeleton();
@@ -457,7 +466,7 @@
       }catch(err){console.error(err); el('empty').style.display='block';}
     }
 
-    // Деталка
+    /* ===== Деталка ===== */
     function openDetails(item){
       const photos=splitPhotos(item.photos);
       el('d-title').textContent=(item.brand||'')+' '+(item.model||'');
@@ -473,7 +482,6 @@
       openModal('modal');
     }
 
-    // Старт
     load();
   </script>
 </body>
