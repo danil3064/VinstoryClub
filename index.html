@@ -99,22 +99,22 @@
     .expander[open] .chev{transform:rotate(45deg)}
     .expander .content{padding:12px 14px;border-top:1px solid var(--stroke);display:flex;flex-direction:column;gap:10px}
 
-    /* Чипы брендов */
+    /* Чипы */
     .chipset{display:flex;gap:8px;flex-wrap:wrap}
     .chipset .chk{position:relative}
     .chipset input{display:none}
     .chipset label{display:inline-block;border:1px solid var(--stroke);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;color:#000}
     .chipset input:checked + label{border-color:#111;background:#111;color:#fff}
+
     .brand-search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--stroke);border-radius:12px;padding:8px 12px}
     .brand-search input{border:0;outline:none;background:transparent;width:100%}
 
-    /* Диапазон цены (компактный) */
+    /* Цена (компактный ползунок) */
     .price-row{display:flex;gap:8px;flex-wrap:wrap}
     .price-field{flex:1;min-width:120px;background:#fff;border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow);
       padding:8px 12px;display:flex;flex-direction:column;gap:4px}
     .price-field label{font-size:12px;color:var(--muted)}
     .price-field input{border:0;outline:none;background:transparent;font-size:16px;color:var(--text);padding:2px 0}
-
     .range-wrap{position:relative;height:28px;margin-top:4px}
     .range{position:absolute;left:0;right:0;top:12px;height:2px;border-radius:999px;background:#e7e1d8}
     .range-fill{position:absolute;height:100%;border-radius:999px;background:#111}
@@ -122,6 +122,17 @@
     .thumb-range::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
       background:#111;border:2px solid #0e0e0e;box-shadow:0 2px 6px rgba(0,0,0,.14)}
     .thumb-range::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#111;border:2px solid #0e0e0e}
+
+    /* Поповер «Размер EU» */
+    .size-box{position:relative}
+    .size-select{min-width:180px}
+    .size-current{margin-top:4px;color:#000}
+    .popover{position:absolute;z-index:200;left:0;top:calc(100% + 8px);width:min(360px,90vw);background:#fff;border:1px solid var(--stroke);
+      border-radius:12px;box-shadow:var(--shadow);padding:12px;display:none}
+    .popover.open{display:block}
+    .popover .title{font-weight:600;margin-bottom:8px}
+    .popover .actions{display:flex;gap:8px;margin-top:8px}
+    .btn.small{padding:8px 10px;border-radius:10px}
   </style>
 </head>
 <body>
@@ -182,13 +193,19 @@
                 <option value="w">Женские</option>
               </select>
             </div>
-            <div class="select">
-              <label for="f-size">Размер EU</label>
-              <select id="f-size">
-                <option value="">Любой</option>
-                <option>36</option><option>37</option><option>38</option><option>39</option>
-                <option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option>
-              </select>
+
+            <!-- Размер EU (поповер с мультивыбором) -->
+            <div class="select size-box size-select" id="sizeSelect">
+              <label>Размер EU</label>
+              <div id="sizeCurrent" class="size-current">Любой</div>
+              <div id="sizePopover" class="popover" role="dialog" aria-label="Размер EU">
+                <div class="title">Размер EU</div>
+                <div id="sizesBox" class="chipset"></div>
+                <div class="actions">
+                  <button id="sizesClear" class="btn small">Очистить</button>
+                  <button id="sizesDone" class="btn primary small">Готово</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -269,8 +286,14 @@
     const el=id=>document.getElementById(id);
     const splitPhotos=s=>(s||"").split(/[,;]\s*/).filter(Boolean);
     const BRANDS=["Saucony","Asics","Reebok","Nike","Puma","Adidas","Mizuno"];
+    const SIZES=[36,37,38,39,40,41,42,43,44,45];
 
-    const state={items:[],filters:{gender:'',size:'',minp:'',maxp:'',brands:[]},sort:'',search:'',priceBounds:{min:0,max:0}};
+    const state={
+      items:[],
+      filters:{gender:'', sizes:[], minp:'', maxp:'', brands:[]},
+      sort:'', search:'',
+      priceBounds:{min:0,max:0}
+    };
 
     function skeleton(n=6){const g=el('grid');g.innerHTML='';for(let i=0;i<n;i++){const d=document.createElement('div');d.className='card';d.innerHTML=`<div class="thumb"></div><div class="body"><div class="meta">Загрузка…</div></div>`;g.appendChild(d);}}
 
@@ -305,9 +328,17 @@
         const q=state.search.toLowerCase();
         list=list.filter(x=>(((x.brand||'')+' '+(x.model||'')+' '+(x.description||'')).toLowerCase()).includes(q));
       }
-      const {gender:g,size:s,minp,maxp,brands}=state.filters;
+      const {gender:g, sizes, minp, maxp, brands}=state.filters;
       if(g) list=list.filter(x=>(x.gender||'').toLowerCase()===g);
-      if(s) list=list.filter(x=>{const v=parseFloat(x.size_eu); if(!isFinite(v)) return String(x.size_eu)===String(s); return Math.floor(v)===parseInt(s,10);});
+      if(sizes && sizes.length){
+        const ss = sizes.map(n=>parseInt(n,10));
+        list = list.filter(x=>{
+          const v=parseFloat(x.size_eu);
+          if(isFinite(v)) return ss.includes(Math.floor(v));
+          // если в БД строка — точное совпадение по любому выбранному
+          return ss.includes(parseInt(String(x.size_eu),10));
+        });
+      }
       if(minp) list=list.filter(x=>Number(x.price)>=Number(minp));
       if(maxp) list=list.filter(x=>Number(x.price)<=Number(maxp));
       if(brands&&brands.length){const bs=brands.map(b=>b.toLowerCase()); list=list.filter(x=>bs.includes(String(x.brand||'').toLowerCase()));}
@@ -327,57 +358,30 @@
       const prices=state.items.map(x=>Number(x.price)||0);
       const min=Math.min(...prices), max=Math.max(...prices);
       state.priceBounds={min,max};
-      // не проставляем значения в поля — они пустые по умолчанию
       initPriceControls(min,max);
     }
-
     function initPriceControls(min,max){
       const rmin=el('r-min'), rmax=el('r-max');
-      [rmin,rmax].forEach(r=>{r.min=min; r.max=max; r.step=10;}); // шаг 10 ₽
-      rmin.value=min; rmax.value=max; // ручки стоят на полном диапазоне
-      // поля пустые, пока пользователь не вводит/двигает
+      [rmin,rmax].forEach(r=>{r.min=min; r.max=max; r.step=10;});
+      rmin.value=min; rmax.value=max;
       el('p-min').value = state.filters.minp || '';
       el('p-max').value = state.filters.maxp || '';
       updateRangeFill();
-      // handlers
       rmin.oninput=()=>{ let a=+rmin.value, b=+rmax.value; if(a>b){a=b; rmin.value=a;} syncPriceFromRange(); };
       rmax.oninput=()=>{ let a=+rmin.value, b=+rmax.value; if(b<a){b=a; rmax.value=b;} syncPriceFromRange(); };
-      el('p-min').addEventListener('input',()=>{
-        let a=Number(el('p-min').value);
-        if(Number.isNaN(a)) a=min;
-        a=Math.max(min,Math.min(a,+rmax.value));
-        rmin.value=a; syncRangeFromInputs();
-      });
-      el('p-max').addEventListener('input',()=>{
-        let b=Number(el('p-max').value);
-        if(Number.isNaN(b)) b=max;
-        b=Math.min(max,Math.max(b,+rmin.value));
-        rmax.value=b; syncRangeFromInputs();
-      });
+      el('p-min').addEventListener('input',()=>{ let a=Number(el('p-min').value); if(Number.isNaN(a)) a=min; a=Math.max(min,Math.min(a,+rmax.value)); rmin.value=a; syncRangeFromInputs(); });
+      el('p-max').addEventListener('input',()=>{ let b=Number(el('p-max').value); if(Number.isNaN(b)) b=max; b=Math.min(max,Math.max(b,+rmin.value)); rmax.value=b; syncRangeFromInputs(); });
     }
-
     function percent(v,min,max){ return ((v-min)/(max-min))*100; }
     function updateRangeFill(){
       const {min,max}=state.priceBounds;
       const a=+el('r-min').value, b=+el('r-max').value;
       el('rangeFill').style.left = `${percent(a,min,max)}%`;
       el('rangeFill').style.right = `${100-percent(b,min,max)}%`;
-      // метка в заголовке показываем только если диапазон сузили
-      el('priceCount').textContent = (a>min || b<max)
-        ? `${a.toLocaleString('ru-RU')}–${b.toLocaleString('ru-RU')} ₽` : '';
+      el('priceCount').textContent = (a>min || b<max) ? `${a.toLocaleString('ru-RU')}–${b.toLocaleString('ru-RU')} ₽` : '';
     }
-    function syncPriceFromRange(){
-      // переносим значения в инпуты, но сохраняем пустоту, если пользователь их не трогал? — заполняем для наглядности
-      el('p-min').value = +el('r-min').value;
-      el('p-max').value = +el('r-max').value;
-      updateRangeFill();
-    }
-    function syncRangeFromInputs(){
-      const {min,max}=state.priceBounds;
-      el('r-min').value = el('p-min').value || min;
-      el('r-max').value = el('p-max').value || max;
-      updateRangeFill();
-    }
+    function syncPriceFromRange(){ el('p-min').value=+el('r-min').value; el('p-max').value=+el('r-max').value; updateRangeFill(); }
+    function syncRangeFromInputs(){ const {min,max}=state.priceBounds; el('r-min').value=el('p-min').value||min; el('r-max').value=el('p-max').value||max; updateRangeFill(); }
 
     /* ===== Бренды ===== */
     function setupBrands(){
@@ -415,23 +419,68 @@
     }
     function updateBrandsUI(){ const n=state.filters.brands.length; el('brandsCount').textContent = n?`Выбрано: ${n}`:''; }
 
+    /* ===== Размер EU (поповер) ===== */
+    function setupSizes(){
+      const box=el('sizesBox'); box.innerHTML='';
+      SIZES.forEach(sz=>{
+        const id='size_'+sz;
+        const span=document.createElement('span'); span.className='chk';
+        const checked = state.filters.sizes.includes(sz) ? 'checked' : '';
+        span.innerHTML=`<input type="checkbox" id="${id}" value="${sz}" ${checked}><label for="${id}">${sz}</label>`;
+        box.appendChild(span);
+      });
+      box.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+        cb.addEventListener('change',()=>{
+          const val=parseInt(cb.value,10);
+          if(cb.checked){ if(!state.filters.sizes.includes(val)) state.filters.sizes.push(val); }
+          else { state.filters.sizes = state.filters.sizes.filter(x=>x!==val); }
+          updateSizesCurrent();
+        });
+      });
+
+      // открыть/закрыть поповер
+      const select = el('sizeSelect');
+      const pop = el('sizePopover');
+      select.addEventListener('click',(e)=>{
+        if(e.target.closest('.popover')) return;
+        pop.classList.toggle('open');
+      });
+      el('sizesDone').addEventListener('click',()=>{ pop.classList.remove('open'); });
+      el('sizesClear').addEventListener('click',()=>{
+        state.filters.sizes=[]; 
+        box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+        updateSizesCurrent();
+      });
+      document.addEventListener('click',(e)=>{
+        if(!select.contains(e.target)) pop.classList.remove('open');
+      }, true);
+
+      updateSizesCurrent();
+    }
+    function updateSizesCurrent(){
+      const cur = el('sizeCurrent');
+      const n = state.filters.sizes.length;
+      if(n===0){ cur.textContent='Любой'; }
+      else if(n<=3){ cur.textContent=state.filters.sizes.sort((a,b)=>a-b).join(', '); }
+      else { cur.textContent=`Выбрано: ${n}`; }
+    }
+
     /* ===== Применить/Сбросить ===== */
     el('f-apply').addEventListener('click',()=>{
       state.filters.gender=el('f-gender').value;
-      state.filters.size=el('f-size').value;
       state.filters.minp=el('p-min').value;
       state.filters.maxp=el('p-max').value;
       closeModal('filtersModal'); applyFilters();
     });
     el('f-reset').addEventListener('click',()=>{
-      ['f-gender','f-size'].forEach(id=>el(id).value='');
-      state.filters={gender:'',size:'',minp:'',maxp:'',brands:[]};
+      el('f-gender').value='';
+      state.filters={gender:'', sizes:[], minp:'', maxp:'', brands:[]};
       el('search').value=''; state.search='';
+      updateSizesCurrent();
       el('brandSearch').value=''; buildBrandChips(BRANDS,false);
-      // вернём ручки ползунка к полным границам, а поля оставим пустыми
-      const {min,max}=state.priceBounds;
-      el('p-min').value=''; el('p-max').value='';
-      el('r-min').value=min; el('r-max').value=max; updateRangeFill();
+      const {min,max}=state.priceBounds; el('p-min').value=''; el('p-max').value=''; el('r-min').value=min; el('r-max').value=max; updateRangeFill();
+      // сброс галочек размеров
+      document.querySelectorAll('#sizesBox input[type=checkbox]').forEach(cb=>cb.checked=false);
       applyFilters();
     });
 
@@ -462,6 +511,7 @@
         state.items=data||[];
         setupPriceBounds();
         setupBrands();
+        setupSizes();
         applyFilters();
       }catch(err){console.error(err); el('empty').style.display='block';}
     }
