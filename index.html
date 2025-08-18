@@ -123,14 +123,15 @@
       background:#111;border:2px solid #0e0e0e;box-shadow:0 2px 6px rgba(0,0,0,.14)}
     .thumb-range::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#111;border:2px solid #0e0e0e}
 
-    /* Поповеры (Размер и Пол) */
-    .field-box{position:relative}
-    .field-current{margin-top:4px;color:#000;font-size:16px}
-    .popover{position:absolute;z-index:200;left:0;top:calc(100% + 8px);width:min(360px,92vw);max-height:60vh;overflow:auto;
-      background:#fff;border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow);padding:12px;display:none}
+    /* Поповеры (Размер, Пол) */
+    .select .current{margin-top:4px;color:#000;font-size:16px;line-height:1.2}
+    .select.popover-host{position:relative}
+    .popover{position:absolute;z-index:200;left:0;top:calc(100% + 8px);width:min(360px,92vw);
+      max-height:60vh;overflow:auto;background:#fff;border:1px solid var(--stroke);
+      border-radius:12px;box-shadow:var(--shadow);padding:12px;display:none}
     .popover.open{display:block}
     .popover .title{font-weight:600;margin-bottom:8px}
-    .popover .actions{display:flex;gap:8px;margin-top:10px}
+    .popover .actions{display:flex;gap:8px;margin-top:8px;position:sticky;bottom:0;background:#fff;padding-top:8px}
   </style>
 </head>
 <body>
@@ -183,13 +184,17 @@
       <div class="dialog-scroll">
         <div class="form">
           <div class="row">
-            <!-- Пол (поповер) -->
-            <div class="select field-box" id="genderSelect">
+            <!-- Пол -->
+            <div class="select popover-host" id="genderHost">
               <label>Пол</label>
-              <div id="genderCurrent" class="field-current">Все</div>
+              <div id="genderCurrent" class="current">Все</div>
               <div id="genderPopover" class="popover" role="dialog" aria-label="Пол">
                 <div class="title">Пол</div>
-                <div id="genderBox" class="chipset"></div>
+                <div class="chipset" id="genderBox">
+                  <span class="chk"><input type="radio" id="g-all" name="gender" value="" checked><label for="g-all">Все</label></span>
+                  <span class="chk"><input type="radio" id="g-m" name="gender" value="m"><label for="g-m">Мужские</label></span>
+                  <span class="chk"><input type="radio" id="g-w" name="gender" value="w"><label for="g-w">Женские</label></span>
+                </div>
                 <div class="actions">
                   <button id="genderClear" class="btn small">Очистить</button>
                   <button id="genderDone" class="btn primary small">Готово</button>
@@ -197,10 +202,10 @@
               </div>
             </div>
 
-            <!-- Размер EU (поповер, мультивыбор) -->
-            <div class="select field-box" id="sizeSelect" style="min-width:200px">
+            <!-- Размер EU (поповер с мультивыбором) -->
+            <div class="select popover-host" id="sizeHost" style="min-width:200px">
               <label>Размер EU</label>
-              <div id="sizeCurrent" class="field-current">Любой</div>
+              <div id="sizeCurrent" class="current">Любой</div>
               <div id="sizePopover" class="popover" role="dialog" aria-label="Размер EU">
                 <div class="title">Размер EU</div>
                 <div id="sizesBox" class="chipset"></div>
@@ -272,7 +277,7 @@
       <div class="dialog-scroll">
         <div class="form">
           <div class="chipset">
-            <span class="chk"><input type="radio" id="s-none" name="sort" value=""><label for="s-none">Без сортировки</label></span>
+            <span class="chk"><input type="radio" id="s-none" name="sort" value="" checked><label for="s-none">Без сортировки</label></span>
             <span class="chk"><input type="radio" id="s-asc" name="sort" value="price_asc"><label for="s-asc">Цена ↑</label></span>
             <span class="chk"><input type="radio" id="s-desc" name="sort" value="price_desc"><label for="s-desc">Цена ↓</label></span>
           </div>
@@ -442,21 +447,16 @@
         });
       });
 
-      const select = el('sizeSelect');
+      const host = el('sizeHost');
       const pop = el('sizePopover');
-      select.addEventListener('click',(e)=>{
-        if(e.target.closest('.popover')) return;
-        pop.classList.toggle('open');
-      });
+      host.addEventListener('click',(e)=>{ if(e.target.closest('.popover')) return; pop.classList.toggle('open'); });
       el('sizesDone').addEventListener('click',()=>{ pop.classList.remove('open'); });
       el('sizesClear').addEventListener('click',()=>{
         state.filters.sizes=[]; 
         box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
         updateSizesCurrent();
       });
-      document.addEventListener('click',(e)=>{
-        if(!select.contains(e.target)) pop.classList.remove('open');
-      }, true);
+      document.addEventListener('click',(e)=>{ if(!host.contains(e.target)) pop.classList.remove('open'); }, true);
 
       updateSizesCurrent();
     }
@@ -468,46 +468,30 @@
       else { cur.textContent=`Выбрано: ${n}`; }
     }
 
-    /* ===== Пол (поповер, одиночный выбор) ===== */
+    /* ===== Пол (поповер) ===== */
     function setupGender(){
-      const box=el('genderBox'); box.innerHTML='';
-      const opts=[{v:'', t:'Все'}, {v:'m', t:'Мужские'}, {v:'w', t:'Женские'}];
-      opts.forEach(o=>{
-        const id='gender_'+(o.v||'any');
-        const span=document.createElement('span'); span.className='chk';
-        const checked = state.filters.gender===o.v ? 'checked' : '';
-        span.innerHTML=`<input type="radio" name="gender" id="${id}" value="${o.v}" ${checked}>
-                        <label for="${id}">${o.t}</label>`;
-        box.appendChild(span);
-      });
+      const host = el('genderHost');
+      const pop  = el('genderPopover');
+      const cur  = el('genderCurrent');
 
-      // сделать радиокнопки через делегирование
-      box.querySelectorAll('input[type=radio]').forEach(rb=>{
-        rb.addEventListener('change',()=>{
-          state.filters.gender = rb.value;
-          updateGenderCurrent();
+      host.addEventListener('click',(e)=>{ if(e.target.closest('.popover')) return; pop.classList.toggle('open'); });
+
+      // выбор радиокнопок
+      pop.querySelectorAll('input[name="gender"]').forEach(r=>{
+        r.addEventListener('change', ()=>{
+          state.filters.gender = r.value; // '' | 'm' | 'w'
+          cur.textContent = r.id==='g-m' ? 'Мужские' : r.id==='g-w' ? 'Женские' : 'Все';
         });
       });
 
-      const select = el('genderSelect');
-      const pop = el('genderPopover');
-      select.addEventListener('click',(e)=>{
-        if(e.target.closest('.popover')) return;
-        pop.classList.toggle('open');
-      });
-      el('genderDone').addEventListener('click',()=>{ pop.classList.remove('open'); });
       el('genderClear').addEventListener('click',()=>{
         state.filters.gender='';
-        box.querySelectorAll('input[type=radio]').forEach(rb=>{ rb.checked = (rb.value===''); });
-        updateGenderCurrent();
+        pop.querySelector('#g-all').checked=true;
+        cur.textContent='Все';
       });
-      document.addEventListener('click',(e)=>{ if(!select.contains(e.target)) pop.classList.remove('open'); }, true);
+      el('genderDone').addEventListener('click',()=>{ pop.classList.remove('open'); });
 
-      updateGenderCurrent();
-    }
-    function updateGenderCurrent(){
-      const map={ '':'Все', 'm':'Мужские', 'w':'Женские' };
-      el('genderCurrent').textContent = map[state.filters.gender||''] || 'Все';
+      document.addEventListener('click',(e)=>{ if(!host.contains(e.target)) pop.classList.remove('open'); }, true);
     }
 
     /* ===== Применить/Сбросить ===== */
@@ -519,12 +503,13 @@
     el('f-reset').addEventListener('click',()=>{
       state.filters={gender:'', sizes:[], minp:'', maxp:'', brands:[]};
       el('search').value=''; state.search='';
-      updateGenderCurrent();
+      // UI reset
+      document.querySelectorAll('#sizesBox input[type=checkbox]').forEach(cb=>cb.checked=false);
       updateSizesCurrent();
       el('brandSearch').value=''; buildBrandChips(BRANDS,false);
+      el('genderCurrent').textContent='Все';
+      document.getElementById('g-all').checked=true;
       const {min,max}=state.priceBounds; el('p-min').value=''; el('p-max').value=''; el('r-min').value=min; el('r-max').value=max; updateRangeFill();
-      document.querySelectorAll('#sizesBox input[type=checkbox]').forEach(cb=>cb.checked=false);
-      document.querySelectorAll('#genderBox input[type=radio]').forEach(rb=>rb.checked=(rb.value===''));
       applyFilters();
     });
 
@@ -533,7 +518,6 @@
       const val=document.querySelector('input[name="sort"]:checked');
       state.sort=val?val.value:''; closeModal('sortModal'); applyFilters();
     });
-    el('s-none').checked=true;
 
     /* ===== Модалы + блокировка фона ===== */
     let pageScrollTop=0, openModals=0;
@@ -564,7 +548,8 @@
     /* ===== Деталка ===== */
     function openDetails(item){
       const photos=splitPhotos(item.photos);
-      el('d-title').textContent=(item.brand||'')+' '+(item.model||'');
+      const title=(item.brand||'')+' '+(item.model||'');
+      el('d-title').textContent=title;
       el('d-chip').textContent='EU '+(item.size_eu||'-');
       el('d-meta').textContent=`Пол: ${(item.gender==='m'?'м':item.gender==='w'?'ж':'-')}`;
       el('d-price').textContent=(item.price||0).toLocaleString('ru-RU')+' ₽';
