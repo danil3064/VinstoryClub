@@ -7,202 +7,290 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* =========================
+       DESIGN TOKENS (ТЗ 1)
+       ========================= */
     :root{
-      /* Премиальная беж-палитра */
-      --bg:#F3EEE6;          /* фон сайта (тёплый беж) */
-      --panel:#F6F1E9;       /* панель/хедер */
-      --card:#F7F2EA;        /* карточки/контейнеры */
-      --modal:#FFFCF7;       /* фон модальных окон (молочный) */
-      --text:#1b1b1b;
-      --muted:#7a7268;
-      --muted-strong:#5b544c;
-      --stroke:#E6DDD0;      /* светлая беж-рамка */
-      --shadow:0 2px 6px rgba(40,35,30,.06), 0 16px 32px rgba(40,35,30,.10);
-      --shadow-soft:0 1px 2px rgba(40,35,30,.04), 0 10px 24px rgba(40,35,30,.08);
-      --accent:#121212;      /* чёрная кнопка */
-      --accent-soft:#171717;
-      --brand:#A6896A;       /* тонкий акцент (подчёркивалка) */
-      --chip:#FFFFFF;        /* белые «пилюли» на бежевом */
-      --chip-stroke:#E8E1D7;
-      --thumb-bg:#EEE9E1;
+      /* Палитра */
+      --bg:#F5F1EA;
+      --card:#FFFFFF;
+      --muted:#EDE7DE;
+      --stroke:#E3DAD0;
+      --text:#262626;
+      --text-muted:#6F6B65;
+      --accent:#2B2B2B;
+      --accent-press:#1C1C1C;
+      --success:#2E7D32;
+      --danger:#C62828;
+
+      /* Скругления и тени */
+      --radius-lg:20px;
+      --radius-md:14px;
+      --radius-sm:10px;
+      --shadow-sm:0 2px 10px rgba(0,0,0,.06);
+      --shadow-md:0 8px 30px rgba(0,0,0,.10);
+
+      /* Типографика */
+      --title:18px;
+      --body:15px;
+      --meta:13px;
+      --price:20px;
+
+      /* Ритм */
+      --gap:16px;
     }
+
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
-      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    body{
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text","Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+      line-height:1.3;
+    }
     a{color:inherit;text-decoration:none}
     body.modal-lock{position:fixed;overflow:hidden;width:100%}
 
-    header{position:sticky;top:0;z-index:50;background:var(--panel);backdrop-filter:saturate(180%) blur(6px);
-      border-bottom:1px solid var(--stroke);padding:12px 16px;display:flex;gap:12px;align-items:center}
-    .logo{width:28px;height:28px;border-radius:8px;background:#fff;border:1px solid var(--stroke);
-      display:grid;place-items:center;font-weight:800;letter-spacing:.5px;color:#111;box-shadow:var(--shadow-soft)}
-    h1{margin:0;font-size:18px;letter-spacing:.2px}
+    /* =========================
+       HEADER / TOOLBAR
+       ========================= */
+    header{
+      position:sticky;top:0;z-index:50;
+      background:var(--bg);
+      backdrop-filter:saturate(160%) blur(6px);
+      padding:12px 16px;border-bottom:1px solid var(--stroke);
+      display:flex;gap:12px;align-items:center
+    }
+    .logo{width:28px;height:28px;border-radius:10px;background:var(--card);
+      border:1px solid var(--stroke);display:grid;place-items:center;
+      font-weight:800;letter-spacing:.3px;color:#111;box-shadow:var(--shadow-sm)}
+    h1{margin:0;font-size:var(--title);font-weight:600;letter-spacing:.2px}
 
-    .toolbar{position:sticky;top:56px;z-index:40;background:var(--panel);border-bottom:1px solid var(--stroke);
-      padding:10px 12px;display:flex;gap:8px;align-items:center}
-    .search{flex:1;display:flex;align-items:center;gap:8px;background:var(--chip);border:1px solid var(--chip-stroke);
-      border-radius:14px;padding:10px 12px;box-shadow:var(--shadow-soft)}
-    .search input{border:0;outline:none;background:transparent;width:100%;font-size:14px;color:var(--text)}
-    .search input::placeholder{color:#a39a90}
-    .pill{background:var(--chip);border:1px solid var(--chip-stroke);padding:9px 14px;border-radius:14px;box-shadow:var(--shadow-soft);
-      cursor:pointer;color:var(--muted-strong);font:inherit;line-height:1}
-    .pill:active{transform:translateY(1px)}
-    .pill:focus{outline:2px solid rgba(0,0,0,.06);outline-offset:2px}
+    .toolbar{
+      position:sticky;top:56px;z-index:45;background:var(--bg);
+      border-bottom:1px solid var(--stroke);
+      padding:10px 16px;display:flex;gap:12px;align-items:center
+    }
+    .search{
+      flex:1;display:flex;align-items:center;gap:10px;
+      background:var(--muted);border:1px solid var(--stroke);
+      border-radius:var(--radius-md);height:44px;padding:0 12px;box-shadow:var(--shadow-sm)
+    }
+    .search input{border:0;outline:none;background:transparent;width:100%;font-size:16px;color:var(--text)}
+    .search input::placeholder{color:var(--text-muted)}
 
-    /* Лента брендов */
-    .cats{position:sticky;top:100px;z-index:39;background:var(--panel);border-bottom:1px solid var(--stroke);
-      padding:8px 10px;overflow:auto;-webkit-overflow-scrolling:touch}
+    .pill{
+      background:var(--muted);border:1px solid var(--stroke);
+      height:44px;padding:0 14px;border-radius:var(--radius-md);
+      box-shadow:var(--shadow-sm);cursor:pointer;color:var(--text);
+      font:600 15px/44px Inter, system-ui; letter-spacing:.2px;
+      transition:transform .16s ease-out, opacity .16s ease-out
+    }
+    .pill:active{transform:scale(.98);opacity:.95}
+
+    /* =========================
+       HORIZONTAL BRAND CHIPS (ТЗ 3)
+       ========================= */
+    .cats{position:sticky;top:112px;z-index:40;background:var(--bg);
+      border-bottom:1px solid var(--stroke);padding:10px 12px;
+      overflow:auto;-webkit-overflow-scrolling:touch}
     .cats-row{display:flex;gap:10px}
     .cat-chip{
-      position:relative; white-space:nowrap;
-      border:1px solid var(--chip-stroke); background:var(--chip);
-      border-radius:999px; padding:9px 14px;
-      box-shadow:var(--shadow-soft); cursor:pointer;
-      font-size:14px; font-weight:700; letter-spacing:.25px; color:#2a2723;
-      transition:transform .08s ease, background .12s ease, color .12s ease
+      white-space:nowrap;height:36px;line-height:36px;
+      padding:0 14px;border-radius:var(--radius-sm);
+      background:var(--muted);border:1px solid var(--stroke);
+      color:var(--text);font-weight:700;letter-spacing:.2px;
+      box-shadow:var(--shadow-sm);transition:transform .16s ease-out, background .16s;
+      cursor:pointer
     }
     .cat-chip:active{transform:scale(.98)}
-    .cat-chip.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-    .cat-chip.active::after{
-      content:""; position:absolute; left:18px; right:18px; bottom:-6px;
-      height:3px; border-radius:3px; background:var(--brand);
-      box-shadow:0 1px 2px rgba(0,0,0,.06);
-    }
+    .cat-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-    .wrap{padding:14px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+    /* =========================
+       GRID & CARDS (ТЗ 2)
+       ========================= */
+    .wrap{padding:16px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    @media (min-width:720px){ .cats{top:116px} .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} }
 
-    /* Карточка */
     .card{
-      background:var(--card); border:1px solid rgba(60,50,40,.06);
-      border-radius:18px; overflow:hidden; display:flex; flex-direction:column;
-      min-height:320px; box-shadow:var(--shadow);
-      transition:transform .09s ease, box-shadow .12s ease; cursor:pointer
+      background:var(--card);border:1px solid var(--stroke);
+      border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;
+      box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .18s ease-out, filter .18s ease-out
     }
     .card:active{transform:scale(.98)}
-    .thumb{flex:0 0 68%; width:100%; object-fit:cover; background:var(--thumb-bg); display:block}
-    .body{padding:12px 12px 26px;display:flex;flex-direction:column;gap:6px}
-    .title{margin:0;font-size:15px;font-weight:800;line-height:1.2;letter-spacing:.2px}
-    .meta{margin:0;font-size:12px;color:var(--muted);font-weight:400}
-    .price{margin:4px 0 0 0; font-size:17px; font-weight:800; color:#0f0f0f}
-    .actions{display:flex;gap:8px;margin-top:auto}
-    .btn{flex:1;background:var(--chip);border:1px solid var(--chip-stroke);padding:10px 12px;border-radius:12px;color:var(--text);
-      text-align:center;text-decoration:none;box-shadow:var(--shadow-soft);cursor:pointer}
-    .btn.primary{background:var(--accent);color:#fff;border-color:#0e0e0e;border-radius:12px}
-    .btn.primary:active{background:var(--accent-soft)}
-    .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;border:1px solid var(--chip-stroke);background:var(--chip);box-shadow:var(--shadow-soft)}
-    .empty{padding:48px 12px;text-align:center;color:var(--muted)}
-    @media (min-width:720px){ .toolbar{top:60px} .cats{top:104px} .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} }
+    .thumb{
+      width:100%;aspect-ratio:4/3;object-fit:cover;background:#F0EBE3
+    }
+    .card:active .thumb{filter:brightness(.95)}
+    .body{padding:12px;display:flex;flex-direction:column;gap:6px}
+    .title{margin:0;font-weight:600;font-size:16px;color:var(--text)}
+    .meta{margin:0;font-size:14px;color:var(--text-muted)}
+    .price{margin:4px 0 0 0;font-size:var(--price);font-weight:600;color:var(--text)}
+    .actions{margin-top:auto}
+    .btn{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      width:100%;height:44px;margin-top:8px;border-radius:var(--radius-md);
+      border:1px solid var(--accent);background:var(--accent);color:#fff;
+      font-weight:600;box-shadow:var(--shadow-sm);transition:transform .16s ease-out, background .16s ease-out
+    }
+    .btn:active{transform:scale(.98);background:var(--accent-press)}
+    .btn .icon{font-size:20px;line-height:1}
 
-    /* Модалы */
+    /* бейдж (опционально, оставлен стиль) */
+    .badge{
+      position:absolute;top:10px;left:10px;z-index:2;
+      background:var(--muted);border:1px solid var(--stroke);color:var(--text);
+      font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;box-shadow:var(--shadow-sm)
+    }
+
+    .empty{padding:48px 12px;text-align:center;color:var(--text-muted)}
+
+    /* =========================
+       PRODUCT MODAL (ТЗ 6)
+       ========================= */
     .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}
     .modal.open{display:flex}
-    .sheet{width:min(620px,96vw);max-height:92vh;background:var(--modal);border:1px solid var(--stroke);
-      border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,.12)}
-    .sheet header{position:relative;top:auto;background:var(--modal);border-bottom:1px solid var(--stroke);
-      padding:12px 14px;display:flex;gap:8px;align-items:center}
-    .close{margin-left:auto;background:var(--chip);border:1px solid var(--chip-stroke);color:#000;border-radius:10px;padding:8px 10px;box-shadow:var(--shadow-soft)}
-    .dialog-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--modal)}
+    .sheet{
+      width:min(640px,96vw);max-height:92vh;background:var(--card);border:1px solid var(--stroke);
+      border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-md)
+    }
+    .sheet header{
+      background:var(--card);border-bottom:1px solid var(--stroke);
+      padding:12px 14px;display:flex;gap:8px;align-items:center
+    }
+    .sheet .close{
+      margin-left:auto;background:transparent;border:0;color:var(--text-muted);
+      font-weight:600;padding:6px 8px;border-radius:10px
+    }
+    .dialog-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--card)}
+    .gallery{display:flex;align-items:center;justify-content:center}
+    .big{max-height:54vh;max-width:100%;width:100%;object-fit:contain;background:var(--card);display:block}
+    .strip{display:flex;gap:6px;overflow:auto;padding:10px;border-top:1px solid var(--stroke);background:var(--muted)}
+    .strip img{height:70px;border-radius:12px;opacity:.9;cursor:pointer;border:1px solid var(--stroke);background:#F0EBE3}
+    .strip img.active{outline:2px solid var(--accent);opacity:1}
+    .content{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+    .desc{font-size:15px;line-height:1.35;color:var(--text);white-space:pre-wrap}
+    .trust{display:flex;gap:10px;flex-wrap:wrap}
+    .trust .chip{background:var(--muted);border:1px solid var(--stroke);color:var(--text);padding:6px 10px;border-radius:999px;font-size:13px}
+    .buy{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--stroke);background:var(--card)}
+    .buy .price{font-size:22px;font-weight:700}
+    .buy .btn{width:auto;min-width:48%;}
 
-    /* Деталка товара */
-    .gallery{display:flex;align-items:center;justify-content:center;background:var(--modal)}
-    .big{max-height:54vh;max-width:100%;width:100%;object-fit:contain;background:var(--modal);display:block}
-    .strip{display:flex;gap:6px;overflow:auto;padding:8px;background:#F1ECE4;border-top:1px solid var(--stroke)}
-    .strip img{height:68px;border-radius:10px;opacity:.9;cursor:pointer;box-shadow:var(--shadow-soft);border:1px solid var(--chip-stroke)}
-    .strip img.active{outline:2px solid var(--brand);opacity:1}
-    .content{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
-    .desc{font-size:13px;line-height:1.5;color:#332f2a;white-space:pre-wrap}
-    .buy{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--stroke);background:var(--modal)}
-    .buy .price{font-weight:700}
-    .buy .btn{flex:0 0 auto;min-width:44%}
-
-    /* Формы в фильтрах */
+    /* =========================
+       FILTERS / SORT (ТЗ 5,4)
+       ========================= */
     .sheet.small{width:min(560px,96vw)}
     .form{display:flex;flex-direction:column;gap:12px;padding:12px 14px}
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    .form label{font-size:12px;color:var(--muted)}
-    .select{min-width:120px;background:var(--chip);border:1px solid var(--chip-stroke);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow-soft)}
-    .footer{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--stroke);background:var(--modal)}
-    .footer .btn{flex:1}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .label{font-size:13px;color:var(--text-muted);margin-bottom:4px;font-weight:500}
 
-    /* Раскрывающиеся разделы */
-    .expander{border:1px solid var(--chip-stroke);border-radius:12px;box-shadow:var(--shadow-soft);background:var(--chip)}
+    .select{
+      min-width:140px;background:var(--muted);border:1px solid var(--stroke);
+      border-radius:var(--radius-md);padding:10px 12px;box-shadow:var(--shadow-sm)
+    }
+    .native-select{
+      appearance:none;-webkit-appearance:none;width:100%;border:0;background:transparent;color:var(--text);
+      font-size:16px;line-height:1.2;padding-right:22px
+    }
+    .native-wrap{position:relative}
+    .native-wrap::after{
+      content:""; position:absolute; right:10px; top:50%;
+      width:8px; height:8px; border-right:2px solid #9c9388; border-bottom:2px solid #9c9388;
+      transform:translateY(-50%) rotate(45deg); pointer-events:none;
+    }
+
+    .expander{
+      border:1px solid var(--stroke);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);background:var(--muted)
+    }
     .expander summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:8px}
     .expander summary::-webkit-details-marker{display:none}
     .expander .title{font-weight:600}
-    .expander .count{margin-left:auto;color:var(--muted);font-size:12px}
-    .expander .chev{width:10px;height:10px;border-right:2px solid #9a8f85;border-bottom:2px solid #9a8f85;
-      transform:rotate(-45deg);transition:transform .2s ease;margin-left:8px;opacity:.9}
+    .expander .count{margin-left:auto;color:var(--text-muted);font-size:13px}
+    .expander .chev{width:10px;height:10px;border-right:2px solid #9c9388;border-bottom:2px solid #9c9388;transform:rotate(-45deg);transition:transform .2s ease}
     .expander[open] .chev{transform:rotate(45deg)}
-    .expander .content{padding:12px 14px;border-top:1px solid var(--chip-stroke);display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+    .expander .content{padding:12px 14px;border-top:1px solid var(--stroke);display:flex;flex-direction:column;gap:10px;background:var(--card)}
 
-    /* Чипы */
     .chipset{display:flex;gap:8px;flex-wrap:wrap}
     .chipset .chk{position:relative}
     .chipset input{display:none}
-    .chipset label{display:inline-block;border:1px solid var(--chip-stroke);background:var(--chip);padding:8px 12px;border-radius:999px;cursor:pointer;color:#2a2723}
-    .chipset input:checked + label{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
-
-    /* Нативный select (для «Пол») */
-    .native-wrap{position:relative}
-    .native-select{
-      appearance:none;-webkit-appearance:none;
-      width:100%;border:0;background:transparent;color:#000;
-      font-size:16px;line-height:1.2;margin-top:4px;padding:0 22px 0 0;
+    .chipset label{
+      display:inline-block;border:1px solid var(--stroke);background:var(--muted);
+      padding:8px 12px;border-radius:999px;cursor:pointer;color:var(--text);font-weight:600
     }
-    .native-wrap::after{
-      content:""; position:absolute; right:4px; top:50%; width:8px;height:8px;
-      border-right:2px solid #9a8f85;border-bottom:2px solid #9a8f85; transform:translateY(-50%) rotate(45deg); pointer-events:none;
+    .chipset input:checked + label{border-color:var(--accent);background:var(--accent);color:#fff}
+
+    .brand-search{display:flex;align-items:center;gap:8px;background:var(--muted);border:1px solid var(--stroke);border-radius:var(--radius-md);padding:8px 12px}
+    .brand-search input{border:0;outline:none;background:transparent;width:100%;color:var(--text)}
+    .brand-search input::placeholder{color:var(--text-muted)}
+
+    /* Цена */
+    .price-row{display:flex;gap:12px;flex-wrap:wrap}
+    .price-field{
+      flex:1;min-width:120px;background:var(--muted);border:1px solid var(--stroke);
+      border-radius:var(--radius-md);box-shadow:var(--shadow-sm);
+      padding:8px 12px;display:flex;flex-direction:column;gap:4px
     }
+    .price-field input{border:0;outline:none;background:transparent;font-size:16px;color:var(--text)}
+    .price-field label{font-size:13px;color:var(--text-muted)}
+    .range-wrap{position:relative;height:32px;margin-top:4px}
+    .range{position:absolute;left:0;right:0;top:15px;height:2px;border-radius:999px;background:#D8D0C6}
+    .range-fill{position:absolute;height:100%;border-radius:999px;background:var(--accent)}
+    .thumb-range{position:absolute;left:0;right:0;top:0;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent;height:32px}
+    .thumb-range::-webkit-slider-thumb{
+      pointer-events:auto;-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+      background:#fff;border:1px solid var(--stroke);box-shadow:var(--shadow-sm)
+    }
+    .thumb-range::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid var(--stroke)}
 
-    .brand-search{display:flex;align-items:center;gap:8px;background:var(--chip);border:1px solid var(--chip-stroke);border-radius:12px;padding:8px 12px}
-    .brand-search input{border:0;outline:none;background:transparent;width:100%}
+    .footer{display:flex;gap:12px;padding:12px 14px;border-top:1px solid var(--stroke);background:var(--card)}
+    .footer .btn{height:44px;border-radius:var(--radius-md);font-weight:700}
+    .footer .btn.light{background:var(--muted);color:var(--text);border:1px solid var(--stroke)}
 
-    /* Цена (ползунок) */
-    .price-row{display:flex;gap:8px;flex-wrap:wrap}
-    .price-field{flex:1;min-width:120px;background:var(--chip);border:1px solid var(--chip-stroke);border-radius:12px;box-shadow:var(--shadow-soft);
-      padding:8px 12px;display:flex;flex-direction:column;gap:4px}
-    .price-field label{font-size:12px;color:var(--muted)}
-    .price-field input{border:0;outline:none;background:transparent;font-size:16px;color:#000;padding:2px 0}
-    .range-wrap{position:relative;height:28px;margin-top:4px}
-    .range{position:absolute;left:0;right:0;top:12px;height:2px;border-radius:999px;background:#E3DACF}
-    .range-fill{position:absolute;height:100%;border-radius:999px;background:#1a1a1a}
-    .thumb-range{position:absolute;left:0;right:0;top:0;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent;height:28px}
-    .thumb-range::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
-      background:#1a1a1a;border:2px solid #0e0e0e;box-shadow:0 2px 6px rgba(0,0,0,.14)}
-    .thumb-range::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#1a1a1a;border:2px solid #0e0e0e}
+    /* =========================
+       SKELETONS / EMPTY
+       ========================= */
+    .skel{
+      background:linear-gradient(90deg, #eee8dd 25%, #f5efe6 37%, #eee8dd 63%);
+      background-size:400% 100%; animation:skel 1.2s ease-in-out infinite;
+      border-radius:var(--radius-lg)
+    }
+    @keyframes skel{0%{background-position:100% 50%}100%{background-position:0 50%}}
   </style>
 </head>
 <body>
+  <!-- Header -->
   <header>
     <div class="logo">V</div>
     <h1>Vinstory Club</h1>
   </header>
 
+  <!-- Toolbar -->
   <div class="toolbar">
-    <div class="search"><input id="search" type="search" placeholder="Поиск" /></div>
+    <div class="search">
+      <input id="search" type="search" placeholder="Поиск" />
+    </div>
     <button id="openFilters" class="pill">Фильтры</button>
     <button id="openSort" class="pill">Сортировка</button>
   </div>
 
-  <!-- Лента брендов -->
+  <!-- Horizontal brand chips -->
   <div class="cats">
     <div id="catsRow" class="cats-row"></div>
   </div>
 
+  <!-- Grid -->
   <div class="wrap">
     <div id="grid" class="grid"></div>
-    <div id="empty" class="empty" style="display:none">Пока нет товаров по условиям</div>
+    <div id="empty" class="empty" style="display:none">Ничего не нашли. Попробуйте изменить фильтры.</div>
   </div>
 
-  <!-- Модал товара -->
+  <!-- PRODUCT MODAL -->
   <div id="modal" class="modal" aria-hidden="true">
     <div class="sheet">
       <header>
-        <div style="font-weight:700" id="d-title">Товар</div>
-        <span class="chip" id="d-chip"></span>
+        <div style="font-weight:600" id="d-title">Товар</div>
+        <span class="trust chip" id="d-chip"></span>
         <button class="close" id="d-close">Закрыть</button>
       </header>
       <div class="dialog-scroll">
@@ -211,28 +299,33 @@
         <div class="content">
           <div id="d-meta" class="meta"></div>
           <div id="d-desc" class="desc"></div>
+          <div class="trust">
+            <span class="chip">Оригинал</span>
+            <span class="chip">500+ пар в наличии</span>
+            <span class="chip">670+ отзывов</span>
+          </div>
         </div>
       </div>
       <div class="buy">
         <div id="d-price" class="price"></div>
-        <a id="d-tg" class="btn primary" target="_blank" rel="noopener">Написать в Telegram</a>
+        <a id="d-tg" class="btn" target="_blank" rel="noopener"><span class="icon">💬</span><span>Написать</span></a>
       </div>
     </div>
   </div>
 
-  <!-- Модал фильтров -->
+  <!-- FILTERS MODAL -->
   <div id="filtersModal" class="modal" aria-hidden="true">
     <div class="sheet small">
       <header>
-        <div style="font-weight:700">Фильтры</div>
+        <div style="font-weight:600">Фильтры</div>
         <button class="close" id="f-close">Закрыть</button>
       </header>
       <div class="dialog-scroll">
         <div class="form">
           <div class="row">
             <!-- Пол — нативный select -->
-            <div class="select native-wrap" id="genderSelect">
-              <label for="genderNative">Пол</label>
+            <div class="select native-wrap">
+              <div class="label">Пол</div>
               <select id="genderNative" class="native-select">
                 <option value="">Все</option>
                 <option value="m">Мужские</option>
@@ -240,16 +333,16 @@
               </select>
             </div>
 
-            <!-- Размер EU (чипы в поповере остаются) -->
+            <!-- Размер EU (поповер-список чипов) -->
             <div class="select" id="sizeSelect" style="min-width:200px;position:relative">
-              <label>Размер EU</label>
-              <div id="sizeCurrent" style="margin-top:4px;color:#000;font-size:16px">Любой</div>
-              <div id="sizePopover" style="position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 8px);width:min(320px,86vw);max-height:72vh;overflow:auto;background:var(--chip);border:1px solid var(--chip-stroke);border-radius:12px;box-shadow:var(--shadow-soft);padding:12px;display:none;z-index:200">
+              <div class="label">Размер EU</div>
+              <div id="sizeCurrent" style="margin-top:2px;color:var(--text);font-size:16px">Любой</div>
+              <div id="sizePopover" style="position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 8px);width:min(330px,88vw);max-height:72vh;overflow:auto;background:var(--card);border:1px solid var(--stroke);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:12px;display:none;z-index:200">
                 <div style="font-weight:600;margin-bottom:8px">Размер EU</div>
                 <div id="sizesBox" class="chipset"></div>
-                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:flex-end">
-                  <button id="sizesClear" class="btn" style="padding:8px 10px;border-radius:10px">Очистить</button>
-                  <button id="sizesDone" class="btn primary" style="padding:8px 10px;border-radius:10px">Готово</button>
+                <div style="display:flex;gap:10px;margin-top:10px;justify-content:flex-end;flex-wrap:wrap">
+                  <button id="sizesClear" class="btn light" style="height:36px">Очистить</button>
+                  <button id="sizesDone" class="btn" style="height:36px">Готово</button>
                 </div>
               </div>
             </div>
@@ -291,25 +384,25 @@
             <div class="content">
               <div class="brand-search"><input id="brandSearch" type="search" placeholder="Поиск бренда" /></div>
               <div class="chipset" id="brandsBox"></div>
-              <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
-                <button id="brandsClear" class="btn" style="padding:8px 10px;border-radius:10px">Очистить</button>
+              <div style="display:flex;gap:10px;margin-top:8px;justify-content:flex-end">
+                <button id="brandsClear" class="btn light" style="height:36px">Очистить</button>
               </div>
             </div>
           </details>
         </div>
       </div>
       <div class="footer">
-        <button id="f-reset" class="btn">Сбросить</button>
-        <button id="f-apply" class="btn primary">Применить</button>
+        <button id="f-reset" class="btn light">Сбросить</button>
+        <button id="f-apply" class="btn">Применить</button>
       </div>
     </div>
   </div>
 
-  <!-- Модал сортировки -->
+  <!-- SORT MODAL -->
   <div id="sortModal" class="modal" aria-hidden="true">
     <div class="sheet small">
       <header>
-        <div style="font-weight:700">Сортировка</div>
+        <div style="font-weight:600">Сортировка</div>
         <button class="close" id="s-close">Закрыть</button>
       </header>
       <div class="dialog-scroll">
@@ -321,16 +414,19 @@
           </div>
         </div>
       </div>
-      <div class="footer"><button id="s-apply" class="btn primary">Применить</button></div>
+      <div class="footer"><button id="s-apply" class="btn">Применить</button></div>
     </div>
   </div>
 
   <script>
+    /* =========================
+       CONFIG
+       ========================= */
     const supabaseUrl="https://prtkjlguydfrbekjxmeb.supabase.co";
     const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydGtqbGd1eWRmcmJla2p4bWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NjM5NTEsImV4cCI6MjA3MDQzOTk1MX0.JqHlRNw7IYNtygM3Ot18SR2xrjljlWUFkvqUInm9xeI";
     const db=supabase.createClient(supabaseUrl,supabaseKey);
-
     const CONTACT_LINK="https://t.me/danissimmooo04";
+
     const el=id=>document.getElementById(id);
     const splitPhotos=s=>(s||"").split(/[,;]\s*/).filter(Boolean);
     const BRANDS=["Saucony","Asics","Reebok","Nike","Puma","Adidas","Mizuno"];
@@ -344,11 +440,29 @@
       priceBounds:{min:0,max:0}
     };
 
-    function skeleton(n=6){const g=el('grid');g.innerHTML='';for(let i=0;i<n;i++){const d=document.createElement('div');d.className='card';d.innerHTML=`<div class="thumb"></div><div class="body"><div class="meta">Загрузка…</div></div>`;g.appendChild(d);}}
+    /* =========================
+       SKELETONS
+       ========================= */
+    function skeleton(n=6){
+      const g=el('grid'); g.innerHTML='';
+      for(let i=0;i<n;i++){
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<div class="thumb skel"></div><div class="body"><div class="skel" style="height:16px;margin-bottom:8px"></div><div class="skel" style="height:14px;width:70%"></div></div>`;
+        g.appendChild(d);
+      }
+    }
 
-    function tgOpen(url){if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.openTelegramLink(url);}else{window.open(url,'_blank','noopener');}}
+    /* =========================
+       TELEGRAM OPEN
+       ========================= */
+    function tgOpen(url){
+      if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.openTelegramLink(url);}
+      else{window.open(url,'_blank','noopener');}
+    }
 
-    /* Лента брендов */
+    /* =========================
+       BRAND CHIPS BAR
+       ========================= */
     function setupCats(){
       const row=el('catsRow'); row.innerHTML='';
       TOP_BRANDS.forEach(b=>{
@@ -367,36 +481,45 @@
       syncCatsWithFilters();
     }
     function syncCatsWithFilters(){
-      const row=el('catsRow'); const bs=state.filters.brands||[];
-      row.querySelectorAll('.cat-chip').forEach(btn=>{
-        const b=btn.dataset.brand;
-        btn.classList.toggle('active', bs.length===1 && bs[0]===b);
+      const bs=state.filters.brands||[];
+      document.querySelectorAll('.cat-chip').forEach(btn=>{
+        btn.classList.toggle('active', bs.length===1 && bs[0]===btn.dataset.brand);
       });
     }
 
+    /* =========================
+       RENDER GRID
+       ========================= */
     function render(list){
       const grid=el('grid'); grid.innerHTML='';
       if(!list.length){el('empty').style.display='block'; return;}
       el('empty').style.display='none';
       list.forEach(x=>{
-        const photos=splitPhotos(x.photos); const cover=photos[0]||''; const title=(x.brand||'')+' '+(x.model||'');
+        const photos=splitPhotos(x.photos); const cover=photos[0]||''; const title=[x.brand,x.model].filter(Boolean).join(' ');
         const card=document.createElement('div'); card.className='card'; card.tabIndex=0;
         card.innerHTML=`
-          <img class="thumb" src="${cover}" alt="${title}" loading="lazy">
+          <div style="position:relative">
+            <img class="thumb" src="${cover}" alt="${title}" loading="lazy">
+          </div>
           <div class="body">
             <p class="title">${title}</p>
             <p class="meta">${(x.gender==='m'?'Мужские':x.gender==='w'?'Женские':'')} · EU: ${x.size_eu ?? '-'}</p>
             <p class="price">${(x.price||0).toLocaleString('ru-RU')} ₽</p>
-            <div class="actions"><a class="btn primary" href="${CONTACT_LINK}">Написать</a></div>
+            <div class="actions">
+              <a class="btn" href="${CONTACT_LINK}"><span class="icon">💬</span><span>Написать</span></a>
+            </div>
           </div>`;
         const open=()=>openDetails(x);
         card.addEventListener('click',e=>{if(e.target.closest('.btn')) return; open();});
         card.addEventListener('keydown',e=>{if(e.key==='Enter') open();});
-        card.querySelector('.btn.primary').addEventListener('click',e=>{e.preventDefault(); tgOpen(CONTACT_LINK);});
+        card.querySelector('.btn').addEventListener('click',e=>{e.preventDefault(); tgOpen(CONTACT_LINK);});
         grid.appendChild(card);
       });
     }
 
+    /* =========================
+       APPLY FILTERS + SORT
+       ========================= */
     function applyFilters(){
       let list=[...state.items];
       if(state.search){
@@ -406,8 +529,8 @@
       const {gender:g, sizes, minp, maxp, brands}=state.filters;
       if(g) list=list.filter(x=>(x.gender||'').toLowerCase()===g);
       if(sizes && sizes.length){
-        const ss = sizes.map(n=>parseInt(n,10));
-        list = list.filter(x=>{
+        const ss=sizes.map(n=>parseInt(n,10));
+        list=list.filter(x=>{
           const v=parseFloat(x.size_eu);
           if(isFinite(v)) return ss.includes(Math.floor(v));
           return ss.includes(parseInt(String(x.size_eu),10));
@@ -415,18 +538,23 @@
       }
       if(minp) list=list.filter(x=>Number(x.price)>=Number(minp));
       if(maxp) list=list.filter(x=>Number(x.price)<=Number(maxp));
-      if(brands&&brands.length){const bs=brands.map(b=>b.toLowerCase()); list=list.filter(x=>bs.includes(String(x.brand||'').toLowerCase()));}
+      if(brands&&brands.length){
+        const bs=brands.map(b=>b.toLowerCase());
+        list=list.filter(x=>bs.includes(String(x.brand||'').toLowerCase()));
+      }
       if(state.sort==='price_asc') list.sort((a,b)=>Number(a.price)-Number(b.price));
       if(state.sort==='price_desc') list.sort((a,b)=>Number(b.price)-Number(a.price));
       render(list); syncCatsWithFilters();
     }
 
-    // Панель
+    /* Toolbar */
     el('openFilters').addEventListener('click',()=>openModal('filtersModal'));
     el('openSort').addEventListener('click',()=>openModal('sortModal'));
     el('search').addEventListener('input',e=>{state.search=e.target.value.trim(); applyFilters();});
 
-    /* ===== Цена ===== */
+    /* =========================
+       PRICE CONTROLS
+       ========================= */
     function setupPriceBounds(){
       if(!state.items.length){state.priceBounds={min:0,max:0}; return;}
       const prices=state.items.map(x=>Number(x.price)||0);
@@ -438,26 +566,28 @@
       const rmin=el('r-min'), rmax=el('r-max');
       [rmin,rmax].forEach(r=>{r.min=min; r.max=max; r.step=10;});
       rmin.value=min; rmax.value=max;
-      el('p-min').value = state.filters.minp || '';
-      el('p-max').value = state.filters.maxp || '';
+      el('p-min').value=state.filters.minp||'';
+      el('p-max').value=state.filters.maxp||'';
       updateRangeFill();
       rmin.oninput=()=>{ let a=+rmin.value, b=+rmax.value; if(a>b){a=b; rmin.value=a;} syncPriceFromRange(); };
       rmax.oninput=()=>{ let a=+rmin.value, b=+rmax.value; if(b<a){b=a; rmax.value=b;} syncPriceFromRange(); };
       el('p-min').addEventListener('input',()=>{ let a=Number(el('p-min').value); if(Number.isNaN(a)) a=min; a=Math.max(min,Math.min(a,+rmax.value)); rmin.value=a; syncRangeFromInputs(); });
       el('p-max').addEventListener('input',()=>{ let b=Number(el('p-max').value); if(Number.isNaN(b)) b=max; b=Math.min(max,Math.max(b,+rmin.value)); rmax.value=b; syncRangeFromInputs(); });
     }
-    function percent(v,min,max){ return ((v-min)/(max-min))*100; }
+    function percent(v,min,max){return ((v-min)/(max-min))*100;}
     function updateRangeFill(){
       const {min,max}=state.priceBounds;
       const a=+el('r-min').value, b=+el('r-max').value;
-      el('rangeFill').style.left = `${percent(a,min,max)}%`;
-      el('rangeFill').style.right = `${100-percent(b,min,max)}%`;
-      el('priceCount').textContent = (a>min || b<max) ? `${a.toLocaleString('ru-RU')}–${b.toLocaleString('ru-RU')} ₽` : '';
+      el('rangeFill').style.left=`${percent(a,min,max)}%`;
+      el('rangeFill').style.right=`${100-percent(b,min,max)}%`;
+      el('priceCount').textContent=(a>min||b<max)?`${a.toLocaleString('ru-RU')}–${b.toLocaleString('ru-RU')} ₽`:''; 
     }
     function syncPriceFromRange(){ el('p-min').value=+el('r-min').value; el('p-max').value=+el('r-max').value; updateRangeFill(); }
     function syncRangeFromInputs(){ const {min,max}=state.priceBounds; el('r-min').value=el('p-min').value||min; el('r-max').value=el('p-max').value||max; updateRangeFill(); }
 
-    /* ===== Бренды (в фильтрах) ===== */
+    /* =========================
+       BRANDS IN FILTERS
+       ========================= */
     function setupBrands(){
       buildBrandChips(BRANDS);
       el('brandSearch').addEventListener('input',e=>{
@@ -468,17 +598,15 @@
         state.filters.brands=[];
         const q=el('brandSearch').value.trim().toLowerCase();
         buildBrandChips(BRANDS.filter(b=>b.toLowerCase().includes(q)),false);
-        syncCatsWithFilters();
-        applyFilters();
+        syncCatsWithFilters(); applyFilters();
       });
     }
-    function buildBrandChips(list,keep=false){
+    function buildBrandChips(list){
       const box=el('brandsBox'); box.innerHTML='';
-      const selected=keep?[...state.filters.brands]:[...state.filters.brands];
       list.forEach(b=>{
         const id='brand_'+b;
         const span=document.createElement('span'); span.className='chk';
-        const checked=selected.includes(b)?'checked':'';
+        const checked=(state.filters.brands||[]).includes(b)?'checked':'';
         span.innerHTML=`<input type="checkbox" id="${id}" value="${b}" ${checked}><label for="${id}">${b}</label>`;
         box.appendChild(span);
       });
@@ -487,20 +615,22 @@
           const v=cb.value;
           if(cb.checked){ if(!state.filters.brands.includes(v)) state.filters.brands.push(v); }
           else { state.filters.brands = state.filters.brands.filter(x=>x!==v); }
-          updateBrandsUI(); syncCatsWithFilters();
+          el('brandsCount').textContent = state.filters.brands.length ? `Выбрано: ${state.filters.brands.length}` : '';
+          syncCatsWithFilters();
         });
       });
-      updateBrandsUI();
+      el('brandsCount').textContent = state.filters.brands.length ? `Выбрано: ${state.filters.brands.length}` : '';
     }
-    function updateBrandsUI(){ const n=state.filters.brands.length; el('brandsCount').textContent = n?`Выбрано: ${n}`:''; }
 
-    /* ===== Размер EU (поповер) ===== */
+    /* =========================
+       SIZES POPOVER
+       ========================= */
     function setupSizes(){
       const box=el('sizesBox'); box.innerHTML='';
       SIZES.forEach(sz=>{
         const id='size_'+sz;
         const span=document.createElement('span'); span.className='chk';
-        const checked = state.filters.sizes.includes(sz) ? 'checked' : '';
+        const checked=state.filters.sizes.includes(sz)?'checked':'';
         span.innerHTML=`<input type="checkbox" id="${id}" value="${sz}" ${checked}><label for="${id}">${sz}</label>`;
         box.appendChild(span);
       });
@@ -513,42 +643,33 @@
         });
       });
 
-      const select = el('sizeSelect');
-      const pop = el('sizePopover');
-      select.addEventListener('click',(e)=>{
-        if(e.target.closest('#sizePopover')) return;
-        pop.style.display = (pop.style.display==='block') ? 'none' : 'block';
-      });
-      el('sizesDone').addEventListener('click',()=>{ el('sizePopover').style.display='none'; });
+      const select=el('sizeSelect'), pop=el('sizePopover');
+      select.addEventListener('click',e=>{ if(e.target.closest('#sizePopover')) return; pop.style.display = (pop.style.display==='block')?'none':'block'; });
+      el('sizesDone').addEventListener('click',()=>{ pop.style.display='none'; });
       el('sizesClear').addEventListener('click',()=>{
-        state.filters.sizes=[]; 
-        box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
-        updateSizesCurrent();
+        state.filters.sizes=[]; box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false); updateSizesCurrent();
       });
-      document.addEventListener('click',(e)=>{
-        if(!select.contains(e.target)) el('sizePopover').style.display='none';
-      }, true);
-
+      document.addEventListener('click',e=>{ if(!select.contains(e.target)) pop.style.display='none'; }, true);
       updateSizesCurrent();
     }
     function updateSizesCurrent(){
-      const cur = el('sizeCurrent');
-      const n = state.filters.sizes.length;
-      if(n===0){ cur.textContent='Любой'; }
-      else if(n<=3){ cur.textContent=state.filters.sizes.sort((a,b)=>a-b).join(', '); }
-      else { cur.textContent=`Выбрано: ${n}`; }
+      const cur=el('sizeCurrent'); const n=state.filters.sizes.length;
+      if(n===0){cur.textContent='Любой';}
+      else if(n<=3){cur.textContent=state.filters.sizes.sort((a,b)=>a-b).join(', ');}
+      else{cur.textContent=`Выбрано: ${n}`;}
     }
 
-    /* ===== Пол (нативный select) ===== */
+    /* =========================
+       GENDER NATIVE SELECT
+       ========================= */
     function setupGender(){
-      const select=el('genderNative');
-      select.value = state.filters.gender || '';
-      select.addEventListener('change',()=>{
-        state.filters.gender = select.value;
-      });
+      const select=el('genderNative'); select.value=state.filters.gender||'';
+      select.addEventListener('change',()=>{ state.filters.gender = select.value; });
     }
 
-    /* ===== Применить/Сбросить ===== */
+    /* =========================
+       FOOTERS / MODALS
+       ========================= */
     el('f-apply').addEventListener('click',()=>{
       state.filters.minp=el('p-min').value;
       state.filters.maxp=el('p-max').value;
@@ -558,22 +679,16 @@
       state.filters={gender:'', sizes:[], minp:'', maxp:'', brands:[]};
       el('genderNative').value='';
       el('search').value=''; state.search='';
-      updateSizesCurrent();
-      el('brandSearch').value=''; buildBrandChips(BRANDS,false);
+      updateSizesCurrent(); el('brandSearch').value=''; buildBrandChips(BRANDS);
       const {min,max}=state.priceBounds; el('p-min').value=''; el('p-max').value=''; el('r-min').value=min; el('r-max').value=max; updateRangeFill();
-      document.querySelectorAll('#sizesBox input[type=checkbox]').forEach(cb=>cb.checked=false);
-      syncCatsWithFilters();
-      applyFilters();
+      applyFilters(); syncCatsWithFilters();
     });
 
-    /* ===== Сортировка ===== */
     el('s-apply').addEventListener('click',()=>{
-      const val=document.querySelector('input[name="sort"]:checked');
-      state.sort=val?val.value:''; closeModal('sortModal'); applyFilters();
+      const val=document.querySelector('input[name="sort"]:checked'); state.sort=val?val.value:''; closeModal('sortModal'); applyFilters();
     });
     el('s-none').checked=true;
 
-    /* ===== Модалы + блокировка фона ===== */
     let pageScrollTop=0, openModals=0;
     function lockBody(){pageScrollTop=window.scrollY||document.documentElement.scrollTop;document.body.style.top=`-${pageScrollTop}px`;document.body.classList.add('modal-lock');}
     function unlockBody(){document.body.classList.remove('modal-lock');document.body.style.top='';window.scrollTo(0,pageScrollTop);}
@@ -584,7 +699,9 @@
     el('s-close').onclick=()=>closeModal('sortModal');
     el('d-close').onclick=()=>closeModal('modal');
 
-    /* ===== Загрузка ===== */
+    /* =========================
+       LOAD DATA
+       ========================= */
     async function load(){
       try{
         skeleton();
@@ -597,15 +714,17 @@
         setupGender();
         setupCats();
         applyFilters();
-      }catch(err){console.error(err); el('empty').style.display='block';}
+      }catch(err){ console.error(err); el('empty').style.display='block'; }
     }
 
-    /* ===== Деталка ===== */
+    /* =========================
+       PRODUCT DETAILS
+       ========================= */
     function openDetails(item){
       const photos=splitPhotos(item.photos);
-      el('d-title').textContent=(item.brand||'')+' '+(item.model||'');
+      el('d-title').textContent=[item.brand,item.model].filter(Boolean).join(' ');
       el('d-chip').textContent='EU '+(item.size_eu||'-');
-      el('d-meta').textContent=`Пол: ${(item.gender==='m'?'м':item.gender==='w'?'ж':'-')}`;
+      el('d-meta').textContent=`Пол: ${(item.gender==='m'?'мужские':item.gender==='w'?'женские':'-')}`;
       el('d-price').textContent=(item.price||0).toLocaleString('ru-RU')+' ₽';
       el('d-desc').textContent=item.description||'';
       const strip=el('d-strip'); strip.innerHTML='';
