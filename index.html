@@ -8,7 +8,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root{
-      --bg:#f8f6f2;            /* фон сайта (не менялся) */
+      --bg:#f8f6f2;            /* фон сайта */
       --panel:#faf8f4;
       --card:#faf8f4;          /* фон карточки = фон сайта */
       --text:#1c1c1c; --muted:#7c7c7c; --muted-strong:#565656;
@@ -74,14 +74,14 @@
     }
     .card:active{transform:scale(.98)}
     .thumb{flex:0 0 68%; width:100%; object-fit:cover; background:#f3f2ef; display:block}
-    .body{padding:12px 12px 16px;display:flex;flex-direction:column;gap:6px}
+    .body{padding:12px 12px 26px;display:flex;flex-direction:column;gap:6px} /* нижний отступ ↑ */
     .title{margin:0;font-size:15px;font-weight:800;line-height:1.2;letter-spacing:.2px}
     .meta{margin:0;font-size:12px;color:var(--muted);font-weight:400}
     .price{margin:4px 0 0 0; font-size:17px; font-weight:800; color:#0f0f0f}
     .actions{display:flex;gap:8px;margin-top:auto}
     .btn{flex:1;background:#fff;border:1px solid var(--stroke);padding:10px 12px;border-radius:12px;color:var(--text);
       text-align:center;text-decoration:none;box-shadow:var(--shadow-soft);cursor:pointer}
-    .btn.primary{background:var(--accent);color:#fff;border-color:#0e0e0e;border-radius:14px}
+    .btn.primary{background:var(--accent);color:#fff;border-color:#0e0e0e;border-radius:12px} /* ниже и компактнее */
     .btn.primary:active{background:var(--accent-soft)}
     .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;border:1px solid var(--stroke);background:#fff;box-shadow:var(--shadow-soft)}
     .empty{padding:48px 12px;text-align:center;color:var(--muted)}
@@ -136,9 +136,16 @@
     .chipset label{display:inline-block;border:1px solid var(--stroke);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;color:#000}
     .chipset input:checked + label{border-color:#111;background:#111;color:#fff}
 
-    /* Список (для «Пол») — вертикальный */
+    /* ВЕРТИКАЛЬНЫЙ СПИСОК (для «Пол») */
     .vlist{display:flex;flex-direction:column;gap:8px}
-    .vlist .chk label{width:100%;text-align:center;border-radius:12px;padding:10px 12px}
+    .vlist .chk{position:relative}
+    .vlist input{display:none}
+    .vlist label{
+      display:block; width:100%; text-align:center;
+      border:1px solid var(--stroke); background:#fff; color:#000;
+      border-radius:12px; padding:10px 12px; cursor:pointer
+    }
+    .vlist input:checked + label{background:#111;color:#fff;border-color:#111}
 
     .brand-search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--stroke);border-radius:12px;padding:8px 12px}
     .brand-search input{border:0;outline:none;background:transparent;width:100%}
@@ -147,7 +154,7 @@
     .price-row{display:flex;gap:8px;flex-wrap:wrap}
     .price-field{flex:1;min-width:120px;background:#fff;border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow-soft);
       padding:8px 12px;display:flex;flex-direction:column;gap:4px}
-    .price-field label{font-size:12px;color:var(--muted)}
+    .price-field label{font-size:12px;color:#7c7c7c}
     .price-field input{border:0;outline:none;background:transparent;font-size:16px;color:#000;padding:2px 0}
     .range-wrap{position:relative;height:28px;margin-top:4px}
     .range{position:absolute;left:0;right:0;top:12px;height:2px;border-radius:999px;background:#e7e1d8}
@@ -163,7 +170,7 @@
     .popover{
       position:absolute; z-index:200; left:50%; transform:translateX(-50%);
       top:calc(100% + 8px);
-      width:min(320px,86vw); max-height:72vh; overflow:auto; /* выше по вертикали */
+      width:min(320px,86vw); max-height:72vh; overflow:auto; /* ↑ по вертикали */
       background:#fff;border:1px solid var(--stroke);border-radius:12px;box-shadow:var(--shadow-soft);padding:12px;display:none
     }
     .popover.open{display:block}
@@ -227,7 +234,7 @@
       <div class="dialog-scroll">
         <div class="form">
           <div class="row">
-            <!-- Пол (вертикальный список) -->
+            <!-- Пол — вертикальный список -->
             <div class="select field-box" id="genderSelect">
               <label>Пол</label>
               <div id="genderCurrent" class="field-current">Все</div>
@@ -283,7 +290,7 @@
           </details>
 
           <!-- Бренды -->
-          <details id="brandsExpander" class="expander">
+          <details id="brandsExpander" class="expander>
             <summary>
               <span class="title">Бренды</span>
               <span id="brandsCount" class="count"></span>
